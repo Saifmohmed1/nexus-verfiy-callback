@@ -3,40 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Display Author Name</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 50px;
-    }
-    #authorName {
-      font-size: 24px;
-      margin-top: 20px;
-    }
-  </style>
+  <title>Redirect Page</title>
 </head>
 <body>
-  <h1>Welcome to the Site</h1>
-  <button id="loginButton">Log In</button>
-  <div id="authorName"></div>
+  <h1>Fetching User Data...</h1>
+  <div id="userData"></div>
 
   <script>
-    // Example function to simulate login and display author's name
-    function loginAndDisplayAuthor() {
-      // Simulate a successful login and getting user info
-      // In real applications, you would retrieve this info from an authentication service
-      const authorName = 'John Doe'; // Replace this with actual logic to get the author's name
+    async function fetchUserData() {
+      // Extract the authorization code from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
 
-      // Display the author's name
-      document.getElementById('authorName').textContent = `Author: ${authorName}`;
+      if (!code) {
+        document.getElementById('userData').textContent = 'No authorization code found.';
+        return;
+      }
+
+      try {
+        // Exchange the authorization code for an access token
+        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: 'YOUR_CLIENT_ID',       // Replace with your Discord Client ID
+            client_secret: 'YOUR_CLIENT_SECRET', // Replace with your Discord Client Secret
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: 'https://nexus-verfiy.github.io/redirect', // Must match the redirect URI set in Discord
+            scope: 'identify'
+          })
+        });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        if (!accessToken) {
+          document.getElementById('userData').textContent = 'Failed to obtain access token.';
+          return;
+        }
+
+        // Fetch the user's profile data from Discord
+        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        const userData = await userResponse.json();
+        document.getElementById('userData').textContent = `Hello, ${userData.username}!`;
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        document.getElementById('userData').textContent = 'An error occurred while fetching user data.';
+      }
     }
 
-    // Add event listener to the button
-    document.getElementById('loginButton').addEventListener('click', function() {
-      // Simulate login process
-      loginAndDisplayAuthor();
-    });
+    // Call the function to fetch user data
+    fetchUserData();
   </script>
 </body>
 </html>
