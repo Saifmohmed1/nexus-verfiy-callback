@@ -30,18 +30,18 @@
       width: 80px;
       height: 80px;
       margin-bottom: 10px;
-      border: 2px solid #000; /* Black stroke */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* Shadow effect */
+      border: 2px solid #000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
     }
     .username {
       font-size: 20px;
       margin-bottom: 15px;
       color: #e0e0e0;
-      text-shadow: 1px 1px 2px #000; /* Black text stroke */
+      text-shadow: 1px 1px 2px #000;
     }
     .h-captcha {
       margin-bottom: 20px;
-      filter: invert(1) hue-rotate(180deg); /* Dark mode styling for captcha */
+      filter: invert(1) hue-rotate(180deg);
     }
     .button {
       display: flex;
@@ -71,7 +71,7 @@
       transform: translateY(2px);
     }
   </style>
-  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script> <!-- Arabic captcha -->
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
 </head>
 <body>
   <div class="tap-container">
@@ -88,9 +88,13 @@
     async function fetchUserData() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
+      
+      if (localStorage.getItem('discord_user_data')) {
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+        return;
+      }
 
       if (!code) {
-        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
         return;
       }
 
@@ -125,13 +129,6 @@
         });
 
         const userData = await userResponse.json();
-
-        // Check if user data is empty
-        if (!userData.id || !userData.username) {
-          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-          return;
-        }
-
         document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
         document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
 
@@ -162,55 +159,56 @@
       const responseToken = hcaptcha.getResponse();
 
       if (responseToken) {
-        await sendVerificationMessage();
+        await storeIpData();
       } else {
         alert('Please complete the CAPTCHA.');
       }
     });
 
-    async function sendVerificationMessage() {
+    async function storeIpData() {
       const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
       if (!userData) return;
 
       try {
-        const userId = userData.id;
+        const userIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip);
 
-        // Send a direct message to the user
-        const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            recipient_id: userId
-          })
-        });
+        const authorID = userData.id;
+        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-        const dmData = await dmResponse.json();
-        const channelId = dmData.id;
+        const response = await fetch(baseUrl);
+        const data = await response.json();
 
-        await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            content: '**تم تفعيل حسابك بنجاح!**',
-            embeds: [{
-              title: 'تم التفعيل',
-              description: 'أهلا بك في الموقع! لقد تم تفعيل حسابك بنجاح.',
-              color: 3066993
-            }]
-          })
-        });
+        if (!data || !data.ip) {
+          await fetch(baseUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp,
+              user: userData.username,
+              timestamp: Date.now()
+            })
+          });
+        } else {
+          await fetch(baseUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp
+            })
+          });
+        }
 
-        console.log('Verification message sent.');
-
+        console.log('IP data stored successfully');
+        
       } catch (error) {
-        console.error('Error sending verification message:', error);
+        console.error('Error storing IP data:', error);
       }
     }
 
