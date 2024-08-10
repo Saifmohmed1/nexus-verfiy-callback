@@ -30,18 +30,18 @@
       width: 80px;
       height: 80px;
       margin-bottom: 10px;
-      border: 2px solid #000; /* Black stroke */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* Shadow effect */
+      border: 2px solid #000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
     }
     .username {
       font-size: 20px;
       margin-bottom: 15px;
       color: #e0e0e0;
-      text-shadow: 1px 1px 2px #000; /* Black text stroke */
+      text-shadow: 1px 1px 2px #000;
     }
     .h-captcha {
       margin-bottom: 20px;
-      filter: invert(1) hue-rotate(180deg); /* Dark mode styling for captcha */
+      filter: invert(1) hue-rotate(180deg);
     }
     .button {
       display: flex;
@@ -72,6 +72,23 @@
     }
   </style>
   <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+  <!-- Firebase setup (make sure to replace with your Firebase config) -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "https://hello-a92eb-default-rtdb.firebaseio.com",
+      projectId: "hello-a92eb",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+  </script>
 </head>
 <body>
   <div class="tap-container">
@@ -80,74 +97,111 @@
     <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
     <button type="button" id="verifyButton" class="button" disabled>
       <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
-      قم بتفعdيلي
+      قم بتفعيلي
     </button>
   </div>
 
-<script>
-  async function fetchUserData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+  <script>
+    async function fetchUserData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
 
-    if (!code) {
-      // No code provided, redirect to main page
-      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-      return;
-    }
-
-    // Check if the user data is already stored in localStorage
-    const userData = localStorage.getItem('discord_user_data');
-    if (userData) {
-      // User data exists, redirect to the main page
-      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-      return;
-    }
-
-    try {
-      // Request an access token from Discord
-      const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: '1220328191470735441',
-          client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
-          grant_type: 'authorization_code',
-          code: code,
-          redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
-          scope: 'identify'
-        })
-      });
-
-      const tokenData = await tokenResponse.json();
-      const accessToken = tokenData.access_token;
-
-      if (!accessToken) {
-        console.error('No access token received.');
+      if (!code) {
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
         return;
       }
 
-      // Fetch user data from Discord
-      const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+      const userData = localStorage.getItem('discord_user_data');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        if (parsedUserData.username) {
+          document.getElementById('username').textContent = `اهلا بك ${parsedUserData.username}!`;
+          document.getElementById('userAvatar').src = parsedUserData.avatar ? 
+            `https://cdn.discordapp.com/avatars/${parsedUserData.id}/${parsedUserData.avatar}.png` : 
+            `https://cdn.discordapp.com/embed/avatars/${parsedUserData.discriminator % 5}.png`;
+        } else {
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
         }
-      });
+      } else {
+        try {
+          const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              client_id: '1220328191470735441',
+              client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+              grant_type: 'authorization_code',
+              code: code,
+              redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+              scope: 'identify'
+            })
+          });
 
-      const userData = await userResponse.json();
-      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+          const tokenData = await tokenResponse.json();
+          const accessToken = tokenData.access_token;
 
-      // Save user data to local storage
-      localStorage.setItem('discord_user_data', JSON.stringify(userData));
+          if (!accessToken) {
+            console.error('No access token received.');
+            return;
+          }
 
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+          const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+
+          const userData = await userResponse.json();
+          document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+          document.getElementById('userAvatar').src = userData.avatar ? 
+            `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : 
+            `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+
+          localStorage.setItem('discord_user_data', JSON.stringify(userData));
+
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
     }
-  }
 
-  fetchUserData();
-</script>
+    function generateVerificationCode(username) {
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const code = `${randomString.slice(0, 4)}${username}${randomString.slice(4)}verified`;
+      return code;
+    }
+
+    async function saveToFirebase(userId, code) {
+      try {
+        await firebase.database().ref('variables/' + userId).set({
+          verificationCode: code,
+          verified: true
+        });
+        console.log('Verification code saved successfully!');
+      } catch (error) {
+        console.error('Error saving verification code:', error);
+      }
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', () => {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+      if (userData && userData.username) {
+        const verificationCode = generateVerificationCode(userData.username);
+        saveToFirebase(userData.id, verificationCode);
+      }
+    });
+
+    function onCaptchaSuccess() {
+      const verifyButton = document.getElementById('verifyButton');
+      verifyButton.disabled = false;
+      verifyButton.style.cursor = 'pointer';
+      verifyButton.style.opacity = '1';
+      verifyButton.style.pointerEvents = 'auto';
+    }
+
+    fetchUserData();
+  </script>
 </body>
 </html>
