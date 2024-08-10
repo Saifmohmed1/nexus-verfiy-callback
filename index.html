@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Page</title>
+  <style>
+    body {
+      background: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .tap-container {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      width: 300px;
+    }
+    .avatar {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+      border: 2px solid #000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    }
+    .username {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #e0e0e0;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .h-captcha {
+      margin-bottom: 20px;
+      filter: invert(1) hue-rotate(180deg);
+    }
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 50px;
+      background: #1f1f1f;
+      border-radius: 12px;
+      color: #e0e0e0;
+      border: 2px solid #444;
+      cursor: not-allowed;
+      opacity: 0.6;
+      text-decoration: none;
+      pointer-events: none;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .button img {
+      width: 24px;
+    }
+    .button:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+    .button:active {
+      transform: translateY(2px);
+    }
+  </style>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+</head>
+<body>
+  <div class="tap-container">
+    <img id="userAvatar" class="avatar" src="" alt="User Avatar">
+    <div id="username" class="username"></div>
+    <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
+    <button type="button" id="verifyButton" class="button" disabled>
+      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
+      قم بتفعيلي
+    </button>
+  </div>
+
+  <script>
+    async function fetchUserData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      
+      const storedUserData = localStorage.getItem('discord_user_data');
+      if (storedUserData) {
+        // If user data is already stored, skip fetching and set user info immediately
+        const userData = JSON.parse(storedUserData);
+        displayUserData(userData);
+        return;
+      }
+
+      if (!code) {
+        return; // No code, don't proceed further
+      }
+
+      try {
+        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: '1220328191470735441',
+            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+            scope: 'identify'
+          })
+        });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        if (!accessToken) {
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+          return;
+        }
+
+        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        const userData = await userResponse.json();
+        displayUserData(userData);
+        // Save user data to local storage
+        localStorage.setItem('discord_user_data', JSON.stringify(userData));
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      }
+    }
+
+    function displayUserData(userData) {
+      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+    }
+
+    function onCaptchaSuccess() {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
+    }
+
+    function onCaptchaError() {
+      document.getElementById('verifyButton').disabled = true;
+      document.getElementById('verifyButton').style.cursor = 'not-allowed';
+      document.getElementById('verifyButton').style.opacity = '0.6';
+      document.getElementById('verifyButton').style.pointerEvents = 'none';
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', async function() {
+      const responseToken = hcaptcha.getResponse();
+
+      if (responseToken) {
+        await storeIpData();
+      } else {
+        alert('Please complete the CAPTCHA.');
+      }
+    });
+
+    async function storeIpData() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+
+      if (!userData) return;
+
+      try {
+        const userIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip);
+
+        const authorID = userData.id;
+        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+
+        const response = await fetch(baseUrl);
+        const data = await response.json();
+
+        if (!data || !data.ip) {
+          await fetch(baseUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp,
+              user: userData.username,
+              timestamp: Date.now()
+            })
+          });
+        } else {
+          await fetch(baseUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp
+            })
+          });
+        }
+
+        console.log('IP data stored successfully');
+        
+      } catch (error) {
+        console.error('Error storing IP data:', error);
+      }
+    }
+
+    fetchUserData();
+  </script>
+</body>
+</html>
