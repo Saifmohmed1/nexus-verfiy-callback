@@ -183,7 +183,7 @@
 const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
   method: 'POST',
   headers: {
-    'Authorization': `Bot ${botToken}`, // Insert botToken directly into the string
+    'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`, // Insert botToken directly into the string
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
@@ -197,7 +197,7 @@ const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels',
           await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bot ${botToken},
+              'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
