@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verification Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
       background: #121212;
@@ -16,6 +17,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      position: relative;
     }
     .tap-container {
       background: #1f1f1f;
@@ -70,24 +72,98 @@
     .button:active {
       transform: translateY(2px);
     }
+    .notification {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(18, 18, 18, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      width: 320px;
+      text-align: center;
+      z-index: 50;
+    }
+    .blurred-bg {
+      backdrop-filter: blur(5px);
+    }
+    .code {
+      cursor: pointer;
+      color: #e0e0e0;
+      background-color: #333;
+      padding: 5px 10px;
+      border-radius: 8px;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .code:hover {
+      background-color: #444;
+    }
   </style>
   <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
-  <!-- Firebase setup (make sure to replace with your Firebase config) -->
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "https://hello-a92eb-default-rtdb.firebaseio.com",
-      projectId: "hello-a92eb",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database(app);
+    function showNotification(code) {
+      const notification = document.getElementById('notification');
+      const codeElement = document.getElementById('code');
+      codeElement.textContent = code;
+      notification.style.display = 'flex';
+      document.body.classList.add('blurred-bg');
+    }
+
+    async function saveToFirebase(userId, code) {
+      const firebaseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${userId}.json`;
+      const data = JSON.stringify({ codes: code });
+
+      try {
+        const response = await fetch(firebaseUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: data,
+        });
+
+        if (response.ok) {
+          console.log('Verification code saved successfully!');
+          showNotification(code);
+        } else {
+          console.error('Failed to save verification code:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error saving verification code:', error);
+      }
+    }
+
+    function generateVerificationCode(username) {
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const code = `${randomString.slice(0, 4)}${username}${randomString.slice(4)}verified`;
+      return code;
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', () => {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+      if (userData && userData.username) {
+        const verificationCode = generateVerificationCode(userData.username);
+        saveToFirebase(userData.id, verificationCode);
+      }
+    });
+
+    document.getElementById('code').addEventListener('click', () => {
+      const code = document.getElementById('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        console.log('Code copied to clipboard:', code);
+      });
+    });
+
+    function onCaptchaSuccess() {
+      const verifyButton = document.getElementById('verifyButton');
+      verifyButton.disabled = false;
+      verifyButton.style.cursor = 'pointer';
+      verifyButton.style.opacity = '1';
+      verifyButton.style.pointerEvents = 'auto';
+    }
   </script>
 </head>
 <body>
@@ -101,107 +177,24 @@
     </button>
   </div>
 
-  <script>
-    async function fetchUserData() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-
-      if (!code) {
-        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-        return;
-      }
-
-      const userData = localStorage.getItem('discord_user_data');
-      if (userData) {
-        const parsedUserData = JSON.parse(userData);
-        if (parsedUserData.username) {
-          document.getElementById('username').textContent = `اهلا بك ${parsedUserData.username}!`;
-          document.getElementById('userAvatar').src = parsedUserData.avatar ? 
-            `https://cdn.discordapp.com/avatars/${parsedUserData.id}/${parsedUserData.avatar}.png` : 
-            `https://cdn.discordapp.com/embed/avatars/${parsedUserData.discriminator % 5}.png`;
-        } else {
-          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-        }
-      } else {
-        try {
-          const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              client_id: '1220328191470735441',
-              client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
-              grant_type: 'authorization_code',
-              code: code,
-              redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
-              scope: 'identify'
-            })
-          });
-
-          const tokenData = await tokenResponse.json();
-          const accessToken = tokenData.access_token;
-
-          if (!accessToken) {
-            console.error('No access token received.');
-            return;
-          }
-
-          const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`
-            }
-          });
-
-          const userData = await userResponse.json();
-          document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-          document.getElementById('userAvatar').src = userData.avatar ? 
-            `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : 
-            `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
-
-          localStorage.setItem('discord_user_data', JSON.stringify(userData));
-
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      }
-    }
-
-    function generateVerificationCode(username) {
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const code = `${randomString.slice(0, 4)}${username}${randomString.slice(4)}verified`;
-      return code;
-    }
-
-    async function saveToFirebase(userId, code) {
-      try {
-        await firebase.database().ref('variables/' + userId).set({
-          verificationCode: code,
-          verified: true
-        });
-        console.log('Verification code saved successfully!');
-      } catch (error) {
-        console.error('Error saving verification code:', error);
-      }
-    }
-
-    document.getElementById('verifyButton').addEventListener('click', () => {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-      if (userData && userData.username) {
-        const verificationCode = generateVerificationCode(userData.username);
-        saveToFirebase(userData.id, verificationCode);
-      }
-    });
-
-    function onCaptchaSuccess() {
-      const verifyButton = document.getElementById('verifyButton');
-      verifyButton.disabled = false;
-      verifyButton.style.cursor = 'pointer';
-      verifyButton.style.opacity = '1';
-      verifyButton.style.pointerEvents = 'auto';
-    }
-
-    fetchUserData();
-  </script>
+  <div id="notification" class="notification flex flex-col gap-2">
+    <div class="flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]">
+      <div class="flex gap-2">
+        <div class="text-[#27ae60] bg-white/5 backdrop-blur-xl p-1 rounded-lg">
+          <img src="https://i.ibb.co/p4ztvTK/success-icon-512x512-qdg1isa0.png" alt="Success Icon" class="w-6 h-6">
+        </div>
+        <div>
+          <p class="text-white">تم بنجاح</p>
+          <p class="text-gray-500">تم التحقق منك بنجاح، استرد هذا الكود لاسترداد المكافات وتفعيلك.</p>
+        </div>
+      </div>
+      <button class="text-gray-600 hover:bg-white/10 p-1 rounded-md transition-colors ease-linear" onclick="document.getElementById('notification').style.display='none'; document.body.classList.remove('blurred-bg');">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div id="code" class="code mt-2"></div>
+  </div>
 </body>
 </html>
