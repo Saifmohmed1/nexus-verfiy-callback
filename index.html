@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verification Page</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
+    <style>
     body {
       background: #121212;
       color: #e0e0e0;
@@ -17,7 +16,6 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      position: relative;
     }
     .tap-container {
       background: #1f1f1f;
@@ -32,18 +30,18 @@
       width: 80px;
       height: 80px;
       margin-bottom: 10px;
-      border: 2px solid #000;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      border: 2px solid #000; /* Black stroke */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* Shadow effect */
     }
     .username {
       font-size: 20px;
       margin-bottom: 15px;
       color: #e0e0e0;
-      text-shadow: 1px 1px 2px #000;
+      text-shadow: 1px 1px 2px #000; /* Black text stroke */
     }
     .h-captcha {
       margin-bottom: 20px;
-      filter: invert(1) hue-rotate(180deg);
+      filter: invert(1) hue-rotate(180deg); /* Dark mode styling for captcha */
     }
     .button {
       display: flex;
@@ -72,36 +70,35 @@
     .button:active {
       transform: translateY(2px);
     }
-    .notification {
-      display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(18, 18, 18, 0.8);
-      backdrop-filter: blur(10px);
-      border-radi<script>
-  async function fetchUserData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+  </style>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script> <!-- Arabic captcha -->
+</head>
+<body>
+  <div class="tap-container">
+    <img id="userAvatar" class="avatar" src="" alt="User Avatar">
+    <div id="username" class="username"></div>
+    <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
+    <button type="button" id="verifyButton" class="button" disabled>
+      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
+      قم بتفعيلي
+    </button>
+  </div>
 
-    if (!code) {
-      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-      return;
-    }
-
-    const userData = localStorage.getItem('discord_user_data');
-    if (userData) {
-      const parsedUserData = JSON.parse(userData);
-      if (parsedUserData.username) {
-        document.getElementById('username').textContent = `اهلا بك ${parsedUserData.username}!`;
-        document.getElementById('userAvatar').src = parsedUserData.avatar ? 
-          `https://cdn.discordapp.com/avatars/${parsedUserData.id}/${parsedUserData.avatar}.png` : 
-          `https://cdn.discordapp.com/embed/avatars/${parsedUserData.discriminator % 5}.png`;
-      } else {
+  <script>
+    async function fetchUserData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      
+      // Check if user is already logged in
+      if (localStorage.getItem('discord_user_data')) {
         window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+        return;
       }
-    } else {
+
+      if (!code) {
+        return;
+      }
+
       try {
         const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
           method: 'POST',
@@ -133,16 +130,10 @@
         });
 
         const userData = await userResponse.json();
-        if (!userData.username || !userData.id) {
-          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-          return;
-        }
-
         document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-        document.getElementById('userAvatar').src = userData.avatar ? 
-          `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : 
-          `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+        document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
 
+        // Save user data to local storage
         localStorage.setItem('discord_user_data', JSON.stringify(userData));
 
       } catch (error) {
@@ -150,104 +141,78 @@
         window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
       }
     }
-  }
 
-  function generateVerificationCode(username) {
-    const randomString1 = Math.random().toString(36).substring(2, 8);
-    const randomString2 = Math.random().toString(36).substring(2, 8);
-    const code = `${randomString1}${username}${randomString2}verified`;
-    return code;
-  }
-
-  async function saveToFirebase(userId, code) {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      const userIP = data.ip;
-
-      await firebase.database().ref('variables/' + userId).set({
-        verificationCode: code,
-        userIP: userIP,
-        verified: true
-      });
-      console.log('Verification code and IP saved successfully!');
-    } catch (error) {
-      console.error('Error saving verification code or IP:', error);
+    function onCaptchaSuccess() {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
     }
-  }
 
-  document.getElementById('verifyButton').addEventListener('click', () => {
-    const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-    if (userData && userData.username) {
-      const verificationCode = generateVerificationCode(userData.username);
-      saveToFirebase(userData.id, verificationCode);
-      alert(`You are successfully verified! Your verification code is: ${verificationCode}`);
+    function onCaptchaError() {
+      document.getElementById('verifyButton').disabled = true;
+      document.getElementById('verifyButton').style.cursor = 'not-allowed';
+      document.getElementById('verifyButton').style.opacity = '0.6';
+      document.getElementById('verifyButton').style.pointerEvents = 'none';
     }
-  });
 
-  function onCaptchaSuccess() {
-    const verifyButton = document.getElementById('verifyButton');
-    verifyButton.disabled = false;
-    verifyButton.style.cursor = 'pointer';
-    verifyButton.style.opacity = '1';
-    verifyButton.style.pointerEvents = 'auto';
-  }
+    document.getElementById('verifyButton').addEventListener('click', async function() {
+      const responseToken = hcaptcha.getResponse();
 
-  fetchUserData();
-</script>us: 12px;
-      padding: 16px;
-      width: 320px;
-      text-align: center;
-      z-index: 50;
-    }
-    .blurred-bg {
-      backdrop-filter: blur(5px);
-    }
-    .code {
-      cursor: pointer;
-      color: #e0e0e0;
-      background-color: #333;
-      padding: 5px 10px;
-      border-radius: 8px;
-      user-select: none;
-      transition: background-color 0.2s;
-    }
-    .code:hover {
-      background-color: #444;
-    }
-  </style>
-  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+      if (responseToken) {
+        await sendVerificationMessage();
+      } else {
+        alert('Please complete the CAPTCHA.');
+      }
+    });
 
-</head>
-<body>
-  <div class="tap-container">
-    <img id="userAvatar" class="avatar" src="" alt="User Avatar">
-    <div id="username" class="username"></div>
-    <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
-    <button type="button" id="verifyButton" class="button" disabled>
-      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
-      قم بتفعيلي
-    </button>
-  </div>
+    async function sendVerificationMessage() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
-  <div id="notification" class="notification flex flex-col gap-2">
-    <div class="flex items-center justify-between w-full h-12 sm:h-14 rounded-lg bg-[#232531] px-[10px]">
-      <div class="flex gap-2">
-        <div class="text-[#27ae60] bg-white/5 backdrop-blur-xl p-1 rounded-lg">
-          <img src="https://i.ibb.co/p4ztvTK/success-icon-512x512-qdg1isa0.png" alt="Success Icon" class="w-6 h-6">
-        </div>
-        <div>
-          <p class="text-white">تم بنجاح</p>
-          <p class="text-gray-500">تم التحقق منك بنجاح، استرد هذا الكود لاسترداد المكافات وتفعيلك.</p>
-        </div>
-      </div>
-      <button class="text-gray-600 hover:bg-white/10 p-1 rounded-md transition-colors ease-linear" onclick="document.getElementById('notification').style.display='none'; document.body.classList.remove('blurred-bg');">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    <div id="code" class="code mt-2"></div>
-  </div>
+      if (!userData) return;
+
+      try {
+        const userId = userData.id;
+
+        // Send a direct message to the user
+        const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            recipient_id: userId
+          })
+        });
+
+        const dmData = await dmResponse.json();
+        const channelId = dmData.id;
+
+        await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: '**تم تفعيل حسابك بنجاح!**',
+            embeds: [{
+              title: 'تم التفعيل',
+              description: 'أهلا بك في الموقع! لقد تم تفعيل حسابك بنجاح.',
+              color: 3066993
+            }]
+          })
+        });
+
+        console.log('Verification message sent.');
+
+      } catch (error) {
+        console.error('Error sending verification message:', error);
+      }
+    }
+
+    fetchUserData();
+  </script>
 </body>
 </html>
