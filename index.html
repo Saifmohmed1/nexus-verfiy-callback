@@ -80,30 +80,7 @@
       transform: translate(-50%, -50%);
       background: rgba(18, 18, 18, 0.8);
       backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 16px;
-      width: 320px;
-      text-align: center;
-      z-index: 50;
-    }
-    .blurred-bg {
-      backdrop-filter: blur(5px);
-    }
-    .code {
-      cursor: pointer;
-      color: #e0e0e0;
-      background-color: #333;
-      padding: 5px 10px;
-      border-radius: 8px;
-      user-select: none;
-      transition: background-color 0.2s;
-    }
-    .code:hover {
-      background-color: #444;
-    }
-  </style>
-  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
-<script>
+      border-radi<script>
   async function fetchUserData() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -217,7 +194,30 @@
   }
 
   fetchUserData();
-</script>
+</script>us: 12px;
+      padding: 16px;
+      width: 320px;
+      text-align: center;
+      z-index: 50;
+    }
+    .blurred-bg {
+      backdrop-filter: blur(5px);
+    }
+    .code {
+      cursor: pointer;
+      color: #e0e0e0;
+      background-color: #333;
+      padding: 5px 10px;
+      border-radius: 8px;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .code:hover {
+      background-color: #444;
+    }
+  </style>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+
 </head>
 <body>
   <div class="tap-container">
