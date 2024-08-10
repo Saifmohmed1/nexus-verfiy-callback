@@ -17,9 +17,6 @@
       justify-content: center;
       height: 100vh;
     }
-    h1 {
-      margin-bottom: 20px;
-    }
     .tap-container {
       background: #1f1f1f;
       border-radius: 12px;
@@ -33,11 +30,14 @@
       width: 80px;
       height: 80px;
       margin-bottom: 10px;
+      border: 2px solid #000; /* Black stroke */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* Shadow effect */
     }
     .username {
       font-size: 20px;
       margin-bottom: 15px;
       color: #e0e0e0;
+      text-shadow: 1px 1px 2px #000; /* Black text stroke */
     }
     .h-captcha {
       margin-bottom: 20px;
@@ -71,12 +71,9 @@
       transform: translateY(2px);
     }
   </style>
-  <script src="https://hcaptcha.com/1/api.js?hl=en" async defer></script>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script> <!-- Arabic captcha -->
 </head>
 <body>
-  <h1>Fetching User Data...</h1>
-  <div id="userData"></div>
-
   <div class="tap-container">
     <img id="userAvatar" class="avatar" src="" alt="User Avatar">
     <div id="username" class="username"></div>
@@ -93,8 +90,7 @@
       const code = urlParams.get('code');
 
       if (!code) {
-        document.getElementById('userData').textContent = 'No authorization code found.';
-        return;
+        return; // No need to display any message
       }
 
       try {
