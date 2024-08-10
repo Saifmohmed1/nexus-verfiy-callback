@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verification Page</title>
-    <style>
+  <style>
     body {
       background: #121212;
       color: #e0e0e0;
@@ -88,14 +88,9 @@
     async function fetchUserData() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      
-      // Check if user is already logged in
-      if (localStorage.getItem('discord_user_data')) {
-        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-        return;
-      }
 
       if (!code) {
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
         return;
       }
 
@@ -130,6 +125,13 @@
         });
 
         const userData = await userResponse.json();
+
+        // Check if user data is empty
+        if (!userData.id || !userData.username) {
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+          return;
+        }
+
         document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
         document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
 
