@@ -3,15 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirect Page</title>
+  <title>Verification Page</title>
+  <style>
+    body {
+      background: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .tap-container {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      width: 300px;
+    }
+    .avatar {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+    }
+    .username {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #e0e0e0;
+    }
+    .h-captcha {
+      margin-bottom: 20px;
+      filter: invert(1) hue-rotate(180deg); /* Dark mode styling for captcha */
+    }
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 50px;
+      background: #1f1f1f;
+      border-radius: 12px;
+      color: #e0e0e0;
+      border: 2px solid #444;
+      cursor: not-allowed;
+      opacity: 0.6;
+      text-decoration: none;
+      pointer-events: none;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .button img {
+      width: 24px;
+    }
+    .button:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+    .button:active {
+      transform: translateY(2px);
+    }
+  </style>
+  <script src="https://hcaptcha.com/1/api.js?hl=en" async defer></script>
 </head>
 <body>
   <h1>Fetching User Data...</h1>
   <div id="userData"></div>
 
+  <div class="tap-container">
+    <img id="userAvatar" class="avatar" src="" alt="User Avatar">
+    <div id="username" class="username"></div>
+    <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
+    <button type="button" id="verifyButton" class="button" disabled>
+      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
+      قم بتفعيلي
+    </button>
+  </div>
+
   <script>
     async function fetchUserData() {
-      // Extract the authorization code from the URL
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
 
@@ -21,18 +98,17 @@
       }
 
       try {
-        // Exchange the authorization code for an access token
         const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: new URLSearchParams({
-            client_id: '1220328191470735441',       // Replace with your Discord Client ID
-            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN', // Replace with your Discord Client Secret
+            client_id: '1220328191470735441',
+            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
             grant_type: 'authorization_code',
             code: code,
-            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback', // Must match the redirect URI set in Discord
+            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
             scope: 'identify'
           })
         });
@@ -45,7 +121,6 @@
           return;
         }
 
-        // Fetch the user's profile data from Discord
         const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
           headers: {
             'Authorization': `Bearer ${accessToken}`
@@ -53,7 +128,8 @@
         });
 
         const userData = await userResponse.json();
-        document.getElementById('userData').textContent = `Hello, ${userData.username}!`;
+        document.getElementById('username').textContent = `Hello, ${userData.username}!`;
+        document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
 
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -61,7 +137,32 @@
       }
     }
 
-    // Call the function to fetch user data
+    function onCaptchaSuccess() {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
+    }
+
+    function onCaptchaError() {
+      document.getElementById('verifyButton').disabled = true;
+      document.getElementById('verifyButton').style.cursor = 'not-allowed';
+      document.getElementById('verifyButton').style.opacity = '0.6';
+      document.getElementById('verifyButton').style.pointerEvents = 'none';
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', function() {
+      const responseToken = hcaptcha.getResponse();
+      console.log('hCaptcha response token:', responseToken);
+
+      if (responseToken) {
+        // Proceed with the verification process
+        console.log('Captcha verified successfully.');
+      } else {
+        alert('Please complete the CAPTCHA.');
+      }
+    });
+
     fetchUserData();
   </script>
 </body>
