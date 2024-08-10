@@ -30,18 +30,18 @@
       width: 80px;
       height: 80px;
       margin-bottom: 10px;
-      border: 2px solid #000;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      border: 2px solid #000; /* Black stroke */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7); /* Shadow effect */
     }
     .username {
       font-size: 20px;
       margin-bottom: 15px;
       color: #e0e0e0;
-      text-shadow: 1px 1px 2px #000;
+      text-shadow: 1px 1px 2px #000; /* Black text stroke */
     }
     .h-captcha {
       margin-bottom: 20px;
-      filter: invert(1) hue-rotate(180deg);
+      filter: invert(1) hue-rotate(180deg); /* Dark mode styling for captcha */
     }
     .button {
       display: flex;
@@ -71,7 +71,7 @@
       transform: translateY(2px);
     }
   </style>
-  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script> <!-- Arabic captcha -->
 </head>
 <body>
   <div class="tap-container">
@@ -89,7 +89,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
 
-      // Redirect if no code is provided
+      // If no code is provided, redirect to the login page
       if (!code) {
         window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
         return;
@@ -121,6 +121,8 @@
         const accessToken = tokenData.access_token;
 
         if (!accessToken) {
+          console.error('Failed to obtain access token.');
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
           return;
         }
 
@@ -137,8 +139,25 @@
         // Save user data to local storage
         localStorage.setItem('discord_user_data', JSON.stringify(userData));
 
+        // Save IP address in Firebase
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        const userId = userData.id;
+        await fetch(`https://hello-a92eb-default-rtdb.firebaseio.com/variables/${userId}.json`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ip: ipData.ip }),
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to store IP address');
+          }
+        });
+
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching user data or storing IP:', error);
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
       }
     }
 
@@ -160,65 +179,62 @@
       const responseToken = hcaptcha.getResponse();
 
       if (responseToken) {
-        const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-
-        if (!userData) return;
-
-        try {
-          const userId = userData.id;
-
-          // Save IP address in Firebase when clicking 'Verify Me'
-          const ipResponse = await fetch('https://api.ipify.org?format=json');
-          const ipData = await ipResponse.json();
-          await fetch(`https://hello-a92eb-default-rtdb.firebaseio.com/variables/${userId}.json`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ip: ipData.ip }),
-          });
-
-          // Send a direct message to the user
-          const botToken = process.env.TOKEN;
-const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA`, // Insert botToken directly into the string
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    recipient_id: userId
-  })
-});
-
-          const dmData = await dmResponse.json();
-          const channelId = dmData.id;
-
-          await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.GdFVaX.b5vYC7HSpTjTwgweGXGMwO5qDHfq38nuEiamTA,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              content: '**تم تفعيل حسابك بنجاح!**',
-              embeds: [{
-                title: 'تم التفعيل',
-                description: 'أهلا بك في الموقع! لقد تم تفعيل حسابك بنجاح.',
-                color: 3066993
-              }]
-            })
-          });
-
-          console.log('IP stored and verification message sent.');
-
-        } catch (error) {
-          console.error('Error storing IP or sending verification message:', error);
-        }
+        await sendVerificationMessage();
       } else {
         alert('Please complete the CAPTCHA.');
       }
     });
+
+    async function sendVerificationMessage() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+
+      if (!userData) return;
+
+      try {
+        const userId = userData.id;
+
+        // Send a direct message to the user
+        const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.G6ugHj.w419uxGwaPCcciJX9vrBfSvBAE7CApFEWErBZo`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            recipient_id: userId
+          })
+        });
+
+        const dmData = await dmResponse.json();
+        const channelId = dmData.id;
+
+        if (!channelId) {
+          throw new Error('Failed to create DM channel');
+        }
+
+        await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+          method: 'POST',
+          headers: {
+             'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.G6ugHj.w419uxGwaPCcciJX9vrBfSvBAE7CApFEWErBZo`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: '**تم تفعيل حسابك بنجاح!**',
+            embeds: [{
+              title: 'تم التفعيل',
+              description: 'أهلا بك في الموقع! لقد تم تفعيل حسابك بنجاح.',
+              color: 3066993
+            }]
+          })
+        });
+
+        console.log('Verification message sent successfully.');
+
+      } catch (error) {
+        console.error('Error sending verification message:', error);
+        alert('There was an error sending the verification message. Please try again later.');
+      }
+    }
 
     fetchUserData();
   </script>
