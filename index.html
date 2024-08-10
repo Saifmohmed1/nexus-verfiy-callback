@@ -104,66 +104,122 @@
   </style>
   <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
   <script>
-    function showNotification(code) {
-      const notification = document.getElementById('notification');
-      const codeElement = document.getElementById('code');
-      codeElement.textContent = code;
-      notification.style.display = 'flex';
-      document.body.classList.add('blurred-bg');
+async function fetchUserData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+
+  if (!code) {
+    window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+    return;
+  }
+
+  const userData = localStorage.getItem('discord_user_data');
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    if (!parsedUserData.username || !parsedUserData.id) {
+      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      return;
     }
 
-    async function saveToFirebase(userId, code) {
-      const firebaseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${userId}.json`;
-      const data = JSON.stringify({ codes: code });
+    document.getElementById('username').textContent = `اهلا بك ${parsedUserData.username}!`;
+    document.getElementById('userAvatar').src = parsedUserData.avatar ?
+      `https://cdn.discordapp.com/avatars/${parsedUserData.id}/${parsedUserData.avatar}.png` :
+      `https://cdn.discordapp.com/embed/avatars/${parsedUserData.discriminator % 5}.png`;
 
-      try {
-        const response = await fetch(firebaseUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: data,
-        });
-
-        if (response.ok) {
-          console.log('Verification code saved successfully!');
-          showNotification(code);
-        } else {
-          console.error('Failed to save verification code:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error saving verification code:', error);
-      }
-    }
-
-    function generateVerificationCode(username) {
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const code = `${randomString.slice(0, 4)}${username}${randomString.slice(4)}verified`;
-      return code;
-    }
-
-    document.getElementById('verifyButton').addEventListener('click', () => {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-      if (userData && userData.username) {
-        const verificationCode = generateVerificationCode(userData.username);
-        saveToFirebase(userData.id, verificationCode);
-      }
-    });
-
-    document.getElementById('code').addEventListener('click', () => {
-      const code = document.getElementById('code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        console.log('Code copied to clipboard:', code);
+  } else {
+    try {
+      const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: '1220328191470735441',
+          client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+          scope: 'identify'
+        })
       });
-    });
 
-    function onCaptchaSuccess() {
-      const verifyButton = document.getElementById('verifyButton');
-      verifyButton.disabled = false;
-      verifyButton.style.cursor = 'pointer';
-      verifyButton.style.opacity = '1';
-      verifyButton.style.pointerEvents = 'auto';
+      const tokenData = await tokenResponse.json();
+      const accessToken = tokenData.access_token;
+
+      if (!accessToken) {
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+        return;
+      }
+
+      const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      const userData = await userResponse.json();
+
+      if (!userData.username || !userData.id) {
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+        return;
+      }
+
+      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+      document.getElementById('userAvatar').src = userData.avatar ?
+        `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` :
+        `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+
+      localStorage.setItem('discord_user_data', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      return;
     }
+  }
+}
+
+function generateVerificationCode(username) {
+  const randomString = Math.random().toString(36).substring(2, 8);
+  return `${randomString.slice(0, 4)}${username}${randomString.slice(4)}verified`;
+}
+
+async function storeUserDataInFirebase(userData, verificationCode) {
+  const userIP = await fetch('https://api.ipify.org?format=json').then(response => response.json()).then(data => data.ip);
+
+  const firebaseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${userData.id}.json`;
+  const userDataToStore = {
+    code: verificationCode,
+    ip: userIP
+  };
+
+  await fetch(firebaseUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userDataToStore),
+  });
+
+  alert(`Successfully verified! Your code is: ${verificationCode}`);
+}
+
+document.getElementById('verifyButton').addEventListener('click', async () => {
+  const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+  if (userData && userData.username) {
+    const verificationCode = generateVerificationCode(userData.username);
+    await storeUserDataInFirebase(userData, verificationCode);
+  }
+});
+
+function onCaptchaSuccess() {
+  const verifyButton = document.getElementById('verifyButton');
+  verifyButton.disabled = false;
+  verifyButton.style.cursor = 'pointer';
+  verifyButton.style.opacity = '1';
+  verifyButton.style.pointerEvents = 'auto';
+}
+
+fetchUserData();
   </script>
 </head>
 <body>
