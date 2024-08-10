@@ -194,16 +194,17 @@
         const userId = userData.id;
 
         // Send a direct message to the user
-        const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.G6ugHj.w419uxGwaPCcciJX9vrBfSvBAE7CApFEWErBZo`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            recipient_id: userId
-          })
-        });
+        const botToken = process.env.TOKEN;
+const dmResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bot ${botToken}`, // Insert botToken directly into the string
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    recipient_id: userId
+  })
+});
 
         const dmData = await dmResponse.json();
         const channelId = dmData.id;
@@ -215,7 +216,7 @@
         await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
           method: 'POST',
           headers: {
-             'Authorization': `Bot MTIxNjEyMDA4MjkwNDc3Njc2NQ.G6ugHj.w419uxGwaPCcciJX9vrBfSvBAE7CApFEWErBZo`,
+             'Authorization': `Bot ${botToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
