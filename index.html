@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Yourself</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #4b0082, #00008b);
+    }
+    .button {
+      width: 300px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 15px;
+      padding: 0 20px;
+      background: linear-gradient(135deg, #4b0082, #00008b);
+      border-radius: 12px;
+      color: white;
+      border: 2px solid black;
+      cursor: not-allowed;
+      opacity: 0.6;
+      text-decoration: none;
+      pointer-events: none;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .button img {
+      width: 30px;
+    }
+    .arrow {
+      margin-left: auto;
+      font-size: 24px;
+    }
+    .button:hover {
+      background-color: #5c2d91;
+      transform: translate(0, -3px);
+    }
+    .button:active {
+      transform: translate(0, 1px);
+    }
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <div class="form-container">
+    <h1>تحقق من نفسك</h1>
+    <form id="verificationForm">
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAAg8O6JA1VgBuJke0bRsTRwW8Mg" data-callback="onTurnstileSuccess"></div>
+      <button type="submit" id="verifyButton" class="button" disabled>
+        تحقق
+        <div class="arrow">›</div>
+      </button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function onTurnstileSuccess(token) {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
+
+      document.getElementById('verificationForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetch('https://your-external-server.com/verify-captcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Successful verification
+            document.getElementById('result').innerText = 'Verification successful!';
+          } else {
+            document.getElementById('result').innerText = 'Captcha validation failed.';
+          }
+        })
+.catch(error => {
+          console.error('Error:', error);
+          document.getElementById('result').innerText = 'An error occurred.';
+        });
+      });
+    }
+  </script>
+</body>
+</html>
