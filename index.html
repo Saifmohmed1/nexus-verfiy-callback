@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verification Page</title>
   <style>
-    /* CSS styles */
+    /* CSS styles remain unchanged */
     body {
       background: #121212;
       color: #e0e0e0;
@@ -17,7 +17,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      overflow: hidden;
+      overflow: hidden; /* Prevent scrolling */
     }
     .tap-container {
       background: #1f1f1f;
@@ -72,7 +72,7 @@
     .button:active {
       transform: translateY(2px);
     }
-    /* Additional styles */
+
     .background {
       position: fixed;
       top: 0;
@@ -84,15 +84,13 @@
       background-position: center;
       z-index: 0;
     }
+
     .card-wrapper {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
+      position: relative;
+      z-index: 1;
       transition: filter 0.3s ease;
-      display: none; /* Hidden until triggered */
     }
+
     .card {
       display: flex;
       flex-direction: column;
@@ -104,6 +102,7 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.7),
                   0 2px 4px -2px rgba(0, 0, 0, 0.7);
     }
+
     .header {
       position: relative;
       background-clip: border-box;
@@ -117,17 +116,20 @@
       height: 7rem;
       overflow: hidden;
     }
+
     .header-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
       border-radius: 0.75rem;
     }
+
     .info {
       border: none;
       padding: 1.5rem;
       text-align: center;
     }
+
     .title {
       color: #ffffff;
       letter-spacing: 0;
@@ -138,6 +140,7 @@
       word-break: break-all;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
+
     .description {
       color: #ffffff;
       font-size: 1rem;
@@ -149,6 +152,7 @@
       line-height: 1.5;
       text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     }
+
     .verification-code {
       color: #ffffff;
       letter-spacing: 0;
@@ -163,6 +167,7 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
       margin-top: 0;
     }
+
     .footer {
       padding: 0.75rem;
       border: 1px solid #424242;
@@ -171,6 +176,7 @@
       justify-content: center;
       background-color: rgba(33, 33, 33, 0.8);
     }
+
     .action {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -190,10 +196,12 @@
       cursor: pointer;
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
+
     .action:active {
       background-color: #1565c0;
       transform: scale(0.95);
     }
+
     #notification {
       position: fixed;
       bottom: 1rem;
@@ -201,6 +209,7 @@
       z-index: 9999;
       display: none; /* Start hidden */
     }
+
     .succsess-alert {
       background: #232531;
       color: #fff;
@@ -210,25 +219,30 @@
       align-items: center;
       width: 300px;
     }
+
     .succsess-alert .icon {
       display: flex;
       align-items: center;
       margin-right: 10px;
     }
+
     .succsess-alert .icon svg {
       width: 24px;
       height: 24px;
       color: #2b9875;
     }
+
     .succsess-alert .message {
       flex: 1;
     }
+
     @keyframes fadeInOut {
       0% { opacity: 0; }
       10% { opacity: 1; }
       90% { opacity: 1; }
       100% { opacity: 0; }
     }
+
     .fade-in-out {
       animation: fadeInOut 3s ease;
     }
@@ -236,78 +250,96 @@
   <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
 </head>
 <body>
-  <!-- Original Verification Page -->
   <div class="tap-container">
     <img id="userAvatar" class="avatar" src="" alt="User Avatar">
     <div id="username" class="username"></div>
     <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
-    <button type="button" id="verifyButton" class="button">
-      <img src="https://example.com/lock-icon.png" alt="Lock Icon">
-      Verify
-    </button>
+    <a id="verifyButton" class="button" onclick="openTapPage()">
+      <img src="https://cdn-icons-png.flaticon.com/512/1053/1053197.png" alt="Verification Icon">
+      تحقق مني
+    </a>
   </div>
 
-  <!-- Additional Card for Notification -->
-  <div class="card-wrapper" id="cardWrapper">
+  <div class="background"></div>
+  <div class="card-wrapper" id="tapPage" style="display: none;"> <!-- Hide tap page initially -->
     <div class="card">
       <div class="header">
-        <img src="https://example.com/card-header-image.jpg" alt="Card Header Image" class="header-image">
+        <img id="headerImage" src="https://example.com/random-animal-image.jpg" alt="Header Image" class="header-image">
       </div>
       <div class="info">
-        <div class="title">Verification Successful</div>
-        <div class="description">You have successfully verified your account. Thank you!</div>
-        <div class="verification-code" id="verificationCode">123456</div>
+        <div id="title" class="title">رمز التحقق الخاص بك</div>
+        <div id="description" class="description">تم التحقق بنجاح، يرجى نسخ رمز التحقق أدناه لاستخدامه في التطبيق.</div>
+        <div id="verificationCode" class="verification-code"></div>
       </div>
       <div class="footer">
-        <button class="action" id="closeCard">Close</button>
+        <button class="action" onclick="copyToClipboard()">نسخ الرمز</button>
       </div>
     </div>
   </div>
 
-  <!-- Notification for Success Alert -->
-  <div id="notification" class="succsess-alert">
-    <div class="icon">
-      <!-- Include success icon SVG or image here -->
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 17l-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8l-9 9z"/></svg>
+  <div id="notification">
+    <div class="succsess-alert fade-in-out">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9.707 13.293a1 1 0 0 0-1.414 1.414l3 3a1 1 0 0 0 1.414 0l7-7a1 1 0 1 0-1.414-1.414L12 15.586l-2.293-2.293z"/>
+        </svg>
+      </div>
+      <div class="message">تم نسخ الرمز بنجاح!</div>
     </div>
-    <div class="message">Verification Successful</div>
   </div>
 
   <script>
-    // JavaScript for dynamic content and interactions
-    document.addEventListener('DOMContentLoaded', function() {
-      // Dummy data for demonstration
-      const userData = {
-        avatar: 'https://example.com/user-avatar.jpg',
-        username: 'JohnDoe'
-      };
+    // Function to handle captcha success
+    function onCaptchaSuccess() {
+      var verifyButton = document.getElementById('verifyButton');
+      verifyButton.style.cursor = 'pointer';
+      verifyButton.style.opacity = '1';
+      verifyButton.style.pointerEvents = 'auto';
+    }
 
-      // Set user data
-      document.getElementById('userAvatar').src = userData.avatar;
-      document.getElementById('username').textContent = userData.username;
+    // Function to handle captcha error
+    function onCaptchaError() {
+      alert("فشل التحقق من الكابتشا. الرجاء المحاولة مرة أخرى.");
+    }
 
-      // Event listeners
-      document.getElementById('verifyButton').addEventListener('click', function() {
-        document.getElementById('cardWrapper').style.display = 'flex';
-        document.getElementById('notification').style.display = 'flex';
+    // Function to open tap page and load verification code
+    function openTapPage() {
+      var tapPage = document.getElementById('tapPage');
+      tapPage.style.display = 'block';
+
+      // Load verification code from Firebase
+      fetch('https://hello-a92eb-default-rtdb.firebaseio.com/variables/authorID.json')
+        .then(response => response.json())
+        .then(data => {
+          var verificationCodeElement = document.getElementById('verificationCode');
+          verificationCodeElement.textContent = data.verificationCode || 'رمز غير متوفر';
+        })
+        .catch(error => {
+          console.error('Error fetching verification code:', error);
+        });
+    }
+
+    // Function to copy the verification code to clipboard
+    function copyToClipboard() {
+      var verificationCodeElement = document.getElementById('verificationCode');
+      var code = verificationCodeElement.textContent;
+
+      navigator.clipboard.writeText(code).then(function() {
+        showNotification();
+      }, function(err) {
+        console.error('Error copying to clipboard:', err);
       });
+    }
 
-      document.getElementById('closeCard').addEventListener('click', function() {
-        document.getElementById('cardWrapper').style.display = 'none';
-        document.getElementById('notification').style.display = 'none';
-      });
+    // Function to show a notification when the code is copied
+    function showNotification() {
+      var notification = document.getElementById('notification');
+      notification.style.display = 'block';
 
-      // Example callback functions for hCaptcha
-      window.onCaptchaSuccess = function() {
-        document.getElementById('verifyButton').style.cursor = 'pointer';
-        document.getElementById('verifyButton').style.opacity = 1;
-        document.getElementById('verifyButton').style.pointerEvents = 'auto';
-      };
-
-      window.onCaptchaError = function() {
-        alert('Captcha verification failed. Please try again.');
-      };
-    });
+      setTimeout(function() {
+        notification.style.display = 'none';
+      }, 3000); // Hide after 3 seconds
+    }
   </script>
 </body>
 </html>
