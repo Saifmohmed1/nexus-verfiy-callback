@@ -72,6 +72,7 @@
     .button:active {
       transform: translateY(2px);
     }
+    /* Additional styles */
     .background {
       position: fixed;
       top: 0;
@@ -240,71 +241,72 @@
     <img id="userAvatar" class="avatar" src="" alt="User Avatar">
     <div id="username" class="username"></div>
     <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
-    <button type="button" id="verifyButton" class="button" disabled>
-      <img src="https://i.ibb.co/0YyDYPD/verify-icon.png" alt="Verify Icon">
+    <button type="button" id="verifyButton" class="button">
+      <img src="https://example.com/lock-icon.png" alt="Lock Icon">
       Verify
     </button>
   </div>
 
-  <div id="notification" class="fade-in-out">
-    <div class="succsess-alert">
-      <div class="icon">
-        <!-- SVG Icon for success -->
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4" />
-        </svg>
+  <!-- Additional Card for Notification -->
+  <div class="card-wrapper" id="cardWrapper">
+    <div class="card">
+      <div class="header">
+        <img src="https://example.com/card-header-image.jpg" alt="Card Header Image" class="header-image">
       </div>
-      <div class="message">Verification code copied to clipboard!</div>
+      <div class="info">
+        <div class="title">Verification Successful</div>
+        <div class="description">You have successfully verified your account. Thank you!</div>
+        <div class="verification-code" id="verificationCode">123456</div>
+      </div>
+      <div class="footer">
+        <button class="action" id="closeCard">Close</button>
+      </div>
     </div>
   </div>
 
-  <script>
-    const userData = {
-      avatar: 'https://example.com/user-avatar.jpg', // Replace with your avatar URL
-      username: 'JohnDoe' // Replace with dynamic username if needed
-    };
+  <!-- Notification for Success Alert -->
+  <div id="notification" class="succsess-alert">
+    <div class="icon">
+      <!-- Include success icon SVG or image here -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 17l-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8l-9 9z"/></svg>
+    </div>
+    <div class="message">Verification Successful</div>
+  </div>
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Update user avatar and username
+  <script>
+    // JavaScript for dynamic content and interactions
+    document.addEventListener('DOMContentLoaded', function() {
+      // Dummy data for demonstration
+      const userData = {
+        avatar: 'https://example.com/user-avatar.jpg',
+        username: 'JohnDoe'
+      };
+
+      // Set user data
       document.getElementById('userAvatar').src = userData.avatar;
       document.getElementById('username').textContent = userData.username;
 
-      // Enable verify button when hCaptcha is solved
-      window.onCaptchaSuccess = () => {
-        document.getElementById('verifyButton').disabled = false;
-        document.getElementById('verifyButton').classList.remove('disabled');
+      // Event listeners
+      document.getElementById('verifyButton').addEventListener('click', function() {
+        document.getElementById('cardWrapper').style.display = 'flex';
+        document.getElementById('notification').style.display = 'flex';
+      });
+
+      document.getElementById('closeCard').addEventListener('click', function() {
+        document.getElementById('cardWrapper').style.display = 'none';
+        document.getElementById('notification').style.display = 'none';
+      });
+
+      // Example callback functions for hCaptcha
+      window.onCaptchaSuccess = function() {
+        document.getElementById('verifyButton').style.cursor = 'pointer';
+        document.getElementById('verifyButton').style.opacity = 1;
+        document.getElementById('verifyButton').style.pointerEvents = 'auto';
       };
 
-      window.onCaptchaError = () => {
-        document.getElementById('verifyButton').disabled = true;
+      window.onCaptchaError = function() {
+        alert('Captcha verification failed. Please try again.');
       };
-
-      // Fetch stored verification code
-      async function fetchUserData() {
-        try {
-          const response = await fetch('https://your-api-endpoint.com/user-data'); // Replace with your API endpoint
-          const data = await response.json();
-          document.getElementById('verificationCode').textContent = data.code;
-        } catch (error) {
-          console.error('Error fetching verification code:', error);
-        }
-      }
-
-      fetchUserData();
-    });
-
-    document.getElementById('verifyButton').addEventListener('click', () => {
-      const verificationCode = document.getElementById('verificationCode').textContent;
-      if (verificationCode) {
-        navigator.clipboard.writeText(verificationCode).then(() => {
-          document.getElementById('notification').style.display = 'block';
-          setTimeout(() => {
-            document.getElementById('notification').style.display = 'none';
-          }, 3000);
-        }).catch(err => {
-          console.error('Failed to copy code: ', err);
-        });
-      }
     });
   </script>
 </body>
