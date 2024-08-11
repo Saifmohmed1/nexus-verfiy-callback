@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Page</title>
+  <style>
+    body {
+      background: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden; /* Prevent scrolling */
+    }
+    .tap-container {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      width: 300px;
+      position: relative; /* For notification positioning */
+    }
+    .avatar {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+      border: 2px solid #000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+    }
+    .username {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #e0e0e0;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .h-captcha {
+      margin-bottom: 20px;
+      filter: invert(1) hue-rotate(180deg);
+    }
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 50px;
+      background: #1f1f1f;
+      border-radius: 12px;
+      color: #e0e0e0;
+      border: 2px solid #444;
+      cursor: not-allowed;
+      opacity: 0.6;
+      text-decoration: none;
+      pointer-events: none;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    .button img {
+      width: 24px;
+    }
+    .button:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+    .button:active {
+      transform: translateY(2px);
+    }
+    #notification {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      display: none; /* Start hidden */
+    }
+    .succsess-alert {
+      background: #232531;
+      color: #fff;
+      border-radius: 0.75rem;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      width: 300px;
+    }
+    .succsess-alert .icon {
+      display: flex;
+      align-items: center;
+      margin-right: 10px;
+    }
+    .succsess-alert .icon svg {
+      width: 24px;
+      height: 24px;
+      color: #2b9875;
+    }
+    .succsess-alert .message {
+      flex: 1;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .fade-in-out {
+      animation: fadeInOut 3s ease;
+    }
+  </style>
+  <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
+</head>
+<body>
+  <div class="tap-container">
+    <img id="userAvatar" class="avatar" src="" alt="User Avatar">
+    <div id="username" class="username"></div>
+    <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
+    <button type="button" id="verifyButton" class="button" disabled>
+      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
+      قم بتفعيلي
+    </button>
+    <div id="notification" class="fade-in-out">
+      <div class="succsess-alert">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"></path>
+          </svg>
+        </div>
+        <div class="message">
+          <p>تم نسخ الكود إلى الحافظة</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchUserData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      // Redirect to Discord OAuth2 authorization page if code is missing
+      if (!code) {
+        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
+        return;
+      }
+      
+      const storedUserData = localStorage.getItem('discord_user_data');
+      if (storedUserData) {
+        const userData = JSON.parse(storedUserData);
+        displayUserData(userData);
+        return;
+      }
+
+      try {
+        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: '1220328191470735441',
+            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+            scope: 'identify'
+          })
+        });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        if (!accessToken) {
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+          return;
+        }
+
+        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        const userData = await userResponse.json();
+        displayUserData(userData);
+        localStorage.setItem('discord_user_data', JSON.stringify(userData));
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      }
+    }
+
+    function displayUserData(userData) {
+      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+    }
+
+    function onCaptchaSuccess() {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
+    }
+
+    function onCaptchaError() {
+      document.getElementById('verifyButton').disabled = true;
+      document.getElementById('verifyButton').style.cursor = 'not-allowed';
+      document.getElementById('verifyButton').style.opacity = '0.6';
+      document.getElementById('verifyButton').style.pointerEvents = 'none';
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', async function() {
+      const responseToken = hcaptcha.getResponse();
+
+      if (responseToken) {
+        await storeIpAndCodeData();
+      } else {
+        alert('Please complete the CAPTCHA.');
+      }
+    });
+
+    function generateRandomCode(username) {
+      const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let randomCode = '';
+      
+      for (let i = 0; i < 50; i++) {
+            randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+        }
+        
+        return randomCode;
+    }
+
+    async function storeIpAndCodeData() {
+        const userIp = await getUserIp();
+        const username = document.getElementById('username').textContent.replace('اهلا بك ', '').split('!')[0];
+        const verificationCode = generateRandomCode(username);
+
+        try {
+            const response = await fetch('https://yourserver.com/api/store-verification-data', {  // Replace with your API endpoint
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ip: userIp,
+                    code: verificationCode,
+                    username: username
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.querySelector('.verification-code').textContent = verificationCode;
+                showNotification();
+            } else {
+                console.error('Error storing data:', result.message);
+            }
+
+        } catch (error) {
+            console.error('Error storing data:', error);
+        }
+    }
+
+    async function getUserIp() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch (error) {
+            console.error('Error fetching IP:', error);
+            return 'unknown';
+        }
+    }
+
+    function showNotification() {
+        const cardWrapper = document.querySelector('.card-wrapper');
+        cardWrapper.style.filter = 'blur(5px)'; // Apply blur to background
+        
+        const notification = document.getElementById('notification');
+        notification.style.display = 'flex'; // Make notification visible
+        
+        // Hide notification and remove blur after a few seconds
+        setTimeout(() => {
+            notification.style.display = 'none'; // Hide the notification
+            cardWrapper.style.filter = 'none'; // Remove blur from background
+        }, 3000);
+    }
+
+    // Fetch user data on page load
+    fetchUserData();
+  </script>
+</body>
+</html>
