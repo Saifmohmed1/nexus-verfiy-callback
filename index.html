@@ -337,7 +337,7 @@ async function fetchUserData() {
         client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+        redirect_uri: 'https://nexus-e.github.io/verfiy-callback/',
         scope: 'identify'
       })
     });
@@ -346,7 +346,7 @@ async function fetchUserData() {
     const accessToken = tokenData.access_token;
 
     if (!accessToken) {
-      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      window.location.href = 'https://nexus-e.github.io/verfiy.github.io/';
       return;
     }
 
