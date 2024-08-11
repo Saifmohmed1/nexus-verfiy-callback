@@ -386,30 +386,24 @@ function onCaptchaError() {
 }
 
 document.getElementById('verifyButton').addEventListener('click', async function() {
-    const responseToken = hcaptcha.getResponse();
+  const responseToken = hcaptcha.getResponse();
 
-    if (responseToken) {
-        // تحقق مما إذا كان هناك كود مخزن بالفعل
-        const storedCode = await fetchStoredCode();
+  if (responseToken) {
+    await storeIpAndCodeData();
 
-        if (!storedCode) {
-            // إذا لم يكن هناك كود مخزن، قم بإنشاء كود جديد وتخزينه
-            await storeIpAndCodeData();
-        }
+    // Show the code popup with animation
+    const code = await fetchStoredCode();  // Fetching the stored code
+    document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
 
-        // عرض الكود المخزن (إما القديم أو الذي تم إنشاؤه حديثًا)
-        const code = await fetchStoredCode();  
-        document.getElementById('verificationCode').textContent = code;
+    const cardWrapper = document.querySelector('.card-wrapper');
+    cardWrapper.classList.add('show');  // Apply the animation class
+    
+    cardWrapper.offsetHeight;  // Force reflow, ensure the animation starts
+    cardWrapper.style.transform = 'translate(-50%, -50%)';  // Ensure it's centered
 
-        // عرض النافذة المنبثقة مع الرسوم المتحركة
-        const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.classList.add('show');
-        cardWrapper.offsetHeight;  // فرض إعادة التدفق
-        cardWrapper.style.transform = 'translate(-50%, -50%)';  // التأكد من المركزية
-
-    } else {
-        alert('Please complete the CAPTCHA.');
-    }
+  } else {
+    alert('Please complete the CAPTCHA.');
+  }
 });
 
 async function fetchStoredCode() {
