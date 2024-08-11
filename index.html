@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verification Page</title>
   <style>
-    /* CSS styles remain unchanged */
+    /* CSS styles */
     body {
       background: #121212;
       color: #e0e0e0;
@@ -17,7 +17,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      overflow: hidden; /* Prevent scrolling */
+      overflow: hidden;
     }
     .tap-container {
       background: #1f1f1f;
@@ -72,7 +72,7 @@
     .button:active {
       transform: translateY(2px);
     }
-
+    /* Additional styles */
     .background {
       position: fixed;
       top: 0;
@@ -84,23 +84,15 @@
       background-position: center;
       z-index: 0;
     }
-
     .card-wrapper {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-    transition: filter 0.3s ease;
-    display: none; /* Hidden until triggered */
-    pointer-events: none; /* Disable pointer events when hidden */
-}
-
-.card-wrapper.show {
-    display: block;
-    pointer-events: auto; /* Enable pointer events when visible */
-}
-
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      transition: filter 0.3s ease;
+      display: none; /* Hidden until triggered */
+    }
     .card {
       display: flex;
       flex-direction: column;
@@ -112,7 +104,6 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.7),
                   0 2px 4px -2px rgba(0, 0, 0, 0.7);
     }
-
     .header {
       position: relative;
       background-clip: border-box;
@@ -126,20 +117,17 @@
       height: 7rem;
       overflow: hidden;
     }
-
     .header-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
       border-radius: 0.75rem;
     }
-
     .info {
       border: none;
       padding: 1.5rem;
       text-align: center;
     }
-
     .title {
       color: #ffffff;
       letter-spacing: 0;
@@ -150,7 +138,6 @@
       word-break: break-all;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     }
-
     .description {
       color: #ffffff;
       font-size: 1rem;
@@ -162,7 +149,6 @@
       line-height: 1.5;
       text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     }
-
     .verification-code {
       color: #ffffff;
       letter-spacing: 0;
@@ -177,7 +163,6 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
       margin-top: 0;
     }
-
     .footer {
       padding: 0.75rem;
       border: 1px solid #424242;
@@ -186,7 +171,6 @@
       justify-content: center;
       background-color: rgba(33, 33, 33, 0.8);
     }
-
     .action {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -206,12 +190,10 @@
       cursor: pointer;
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
-
     .action:active {
       background-color: #1565c0;
       transform: scale(0.95);
     }
-
     #notification {
       position: fixed;
       bottom: 1rem;
@@ -219,7 +201,6 @@
       z-index: 9999;
       display: none; /* Start hidden */
     }
-
     .succsess-alert {
       background: #232531;
       color: #fff;
@@ -229,30 +210,25 @@
       align-items: center;
       width: 300px;
     }
-
     .succsess-alert .icon {
       display: flex;
       align-items: center;
       margin-right: 10px;
     }
-
     .succsess-alert .icon svg {
       width: 24px;
       height: 24px;
       color: #2b9875;
     }
-
     .succsess-alert .message {
       flex: 1;
     }
-
     @keyframes fadeInOut {
       0% { opacity: 0; }
       10% { opacity: 1; }
       90% { opacity: 1; }
       100% { opacity: 0; }
     }
-
     .fade-in-out {
       animation: fadeInOut 3s ease;
     }
@@ -264,129 +240,249 @@
     <img id="userAvatar" class="avatar" src="" alt="User Avatar">
     <div id="username" class="username"></div>
     <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
-    <a id="verifyButton" class="button" onclick="openTapPage()">
-      <img src="https://cdn-icons-png.flaticon.com/512/1053/1053197.png" alt="Verification Icon">
-      تحقق مني
-    </a>
+    <button type="button" id="verifyButton" class="button" disabled>
+      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
+      قم بتفعيلي
+    </button>
   </div>
 
+  <!-- Notification popup -->
   <div class="background"></div>
-  <div class="card-wrapper" id="tapPage" style="display: none;"> <!-- Hide tap page initially -->
-    <div class="card">
-      <div class="header">
-        <img id="headerImage" src="https://example.com/random-animal-image.jpg" alt="Header Image" class="header-image">
+  <div class="card-wrapper">
+      <div class="card">
+          <div class="header">
+              <img src="https://i.ibb.co/QCKrfYj/Screenshot-2024-08-11-04-17-13-045-com-discord-edit.jpg" alt="Discord Screenshot" class="header-image">
+          </div>
+          <div class="info">
+              <p class="title">كود التحقق</p>
+              <p class="description">تم التحقق منك بنجاح، يمكنك الآن العودة إلى الدسكورد واستخدام هذا الكود لتفعيل وتطبيق الكود على حسابك، هذا الكود ساري على حسابك فقط.</p>
+              <p class="verification-code" id="verificationCode">...</p>
+          </div>
+          <div class="footer">
+              <button type="button" class="action">نسخ</button>
+          </div>
       </div>
-      <div class="info">
-        <div id="title" class="title">رمز التحقق الخاص بك</div>
-        <div id="description" class="description">تم التحقق بنجاح، يرجى نسخ رمز التحقق أدناه لاستخدامه في التطبيق.</div>
-        <div id="verificationCode" class="verification-code"></div>
-      </div>
-      <div class="footer">
-        <button class="action" onclick="copyToClipboard()">نسخ الرمز</button>
-      </div>
-    </div>
   </div>
-
-  <div id="notification">
-    <div class="succsess-alert fade-in-out">
-      <div class="icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9.707 13.293a1 1 0 0 0-1.414 1.414l3 3a1 1 0 0 0 1.414 0l7-7a1 1 0 1 0-1.414-1.414L12 15.586l-2.293-2.293z"/>
-        </svg>
+  <div id="notification" class="fade-in-out">
+      <div class="succsess-alert">
+          <div class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"></path>
+              </svg>
+          </div>
+          <div class="message">
+              <p>تم نسخ الكود إلى الحافظة</p>
+          </div>
       </div>
-      <div class="message">تم نسخ الرمز بنجاح!</div>
-    </div>
   </div>
 
   <script>
-    // Function to handle captcha success
-    function onCaptchaSuccess() {
-      var verifyButton = document.getElementById('verifyButton');
-      verifyButton.style.cursor = 'pointer';
-      verifyButton.style.opacity = '1';
-      verifyButton.style.pointerEvents = 'auto';
-    }
+    async function fetchUserData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
 
-    // Function to handle captcha error
-    function onCaptchaError() {
-      alert("فشل التحقق من الكابتشا. الرجاء المحاولة مرة أخرى.");
-    }
+      if (!code) {
+        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
+        return;
+      }
 
-    // Function to open tap page and load verification code
-    function openTapPage() {
-      var tapPage = document.getElementById('tapPage');
-      tapPage.style.display = 'block';
+      const storedUserData = localStorage.getItem('discord_user_data');
+      if (storedUserData) {
+        const userData = JSON.parse(storedUserData);
+        displayUserData(userData);
+        return;
+      }
 
-      // Load verification code from Firebase
-      fetch('https://hello-a92eb-default-rtdb.firebaseio.com/variables/authorID.json')
-        .then(response => response.json())
-        .then(data => {
-          var verificationCodeElement = document.getElementById('verificationCode');
-          verificationCodeElement.textContent = data.verificationCode || 'رمز غير متوفر';
-        })
-        .catch(error => {
-          console.error('Error fetching verification code:', error);
+      try {
+        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: '1220328191470735441',
+            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+            scope: 'identify'
+          })
         });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        if (!accessToken) {
+          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+          return;
+        }
+
+        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        const userData = await userResponse.json();
+        displayUserData(userData);
+        localStorage.setItem('discord_user_data', JSON.stringify(userData));
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      }
     }
 
-    // Function to copy the verification code to clipboard
-    function copyToClipboard() {
-      var verificationCodeElement = document.getElementById('verificationCode');
-      var code = verificationCodeElement.textContent;
-
-      navigator.clipboard.writeText(code).then(function() {
-        showNotification();
-      }, function(err) {
-        console.error('Error copying to clipboard:', err);
-      });
+    function displayUserData(userData) {
+      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
     }
 
-    // Function to show a notification when the code is copied
-    function showNotification() {
-      var notification = document.getElementById('notification');
-      notification.style.display = 'block';
-
-      setTimeout(function() {
-        notification.style.display = 'none';
-      }, 3000); // Hide after 3 seconds
+    function onCaptchaSuccess() {
+      document.getElementById('verifyButton').disabled = false;
+      document.getElementById('verifyButton').style.cursor = 'pointer';
+      document.getElementById('verifyButton').style.opacity = '1';
+      document.getElementById('verifyButton').style.pointerEvents = 'auto';
     }
-document.getElementById('verifyButton').addEventListener('click', async function() {
-    const responseToken = hcaptcha.getResponse();
 
-    if (responseToken) {
+    function onCaptchaError() {
+      document.getElementById('verifyButton').disabled = true;
+      document.getElementById('verifyButton').style.cursor = 'not-allowed';
+      document.getElementById('verifyButton').style.opacity = '0.6';
+      document.getElementById('verifyButton').style.pointerEvents = 'none';
+    }
+
+    document.getElementById('verifyButton').addEventListener('click', async function() {
+      const responseToken = hcaptcha.getResponse();
+
+      if (responseToken) {
         await storeIpAndCodeData();
 
+        // Show the code popup
         const code = await fetchStoredCode();  // Fetching the stored code
         document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
 
         const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.classList.add('show');  // Show the popup
+        cardWrapper.style.display = 'block';  // Display the popup
 
-    } else {
+      } else {
         alert('Please complete the CAPTCHA.');
-    }
-});
+      }
+    });
 
-document.querySelector('.action').addEventListener('click', function() {
-    const code = document.querySelector('.verification-code').textContent;
-    navigator.clipboard.writeText(code).then(() => {
+    async function fetchStoredCode() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+
+      if (!userData) return '';
+
+      try {
+        const authorID = userData.id;
+        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+
+        const response = await fetch(baseUrl);
+        const data = await response.json();
+
+        if (data && data.code) {
+          return data.code;
+        } else {
+          throw new Error('No code found.');
+        }
+      } catch (error) {
+        console.error('Error fetching stored code:', error);
+        return '';
+      }
+    }
+
+    function generateRandomCode(username) {
+      const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let randomCode = '';
+      
+      for (let i = 0; i < 50; i++) {
+        randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+      }
+
+      const middleIndex = Math.floor(randomCode.length / 2);
+      randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
+
+      const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
+      randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
+
+      return randomCode;
+    }
+
+    async function storeIpAndCodeData() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+
+      if (!userData) return;
+
+      try {
+        const userIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip);
+
+        const authorID = userData.id;
+        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+
+        const randomCode = generateRandomCode(userData.username);
+
+        const response = await fetch(baseUrl);
+        const data = await response.json();
+
+        if (!data || !data.ip) {
+          await fetch(baseUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp,
+              code: randomCode,
+              user: userData.username,
+              timestamp: Date.now()
+            })
+          });
+        } else {
+          await fetch(baseUrl, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ip: userIp,
+              code: randomCode
+            })
+          });
+        }
+
+        console.log('IP and code data stored successfully');
+
+      } catch (error) {
+        console.error('Error storing IP and code data:', error);
+      }
+    }
+
+    document.querySelector('.action').addEventListener('click', function() {
+      const code = document.querySelector('.verification-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
         // Show notification
         const cardWrapper = document.querySelector('.card-wrapper');
         cardWrapper.style.filter = 'blur(5px)'; // Apply blur to background
-
+        
         const notification = document.getElementById('notification');
         notification.style.display = 'flex'; // Make notification visible
-
+        
         // Hide notification and remove blur after a few seconds
         setTimeout(() => {
-            notification.style.display = 'none'; // Hide the notification
-            cardWrapper.style.filter = 'none'; // Remove blur from background
-            cardWrapper.classList.remove('show');  // Hide the popup and re-enable pointer-events on the main page
+          notification.style.display = 'none'; // Hide the notification
+          cardWrapper.style.filter = 'none'; // Remove blur from background
         }, 3000);
-    }).catch(err => {
+      }).catch(err => {
         console.error('Failed to copy code: ', err);
+      });
     });
-});
+
+    // Call the function to fetch user data when the page loads
+    fetchUserData();
   </script>
 </body>
 </html>
