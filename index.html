@@ -452,6 +452,7 @@ function generateRandomCode(username) {
   return randomCode;
 }
 
+
 async function storeIpAndCodeData() {
   const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
@@ -465,31 +466,36 @@ async function storeIpAndCodeData() {
     const authorID = userData.id;
     const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-    // جلب البيانات الموجودة من قاعدة البيانات
+    const randomCode = generateRandomCode(userData.username);
+
     const response = await fetch(baseUrl);
     const data = await response.json();
 
-    // إذا كانت البيانات موجودة ولديها كود، لا تقم بإنشاء كود جديد
-    if (data && data.code) {
-      console.log('Code already exists:', data.code);
-      return data.code;
+    if (!data || !data.ip) {
+      await fetch(baseUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ip: userIp,
+          code: randomCode,
+          user: userData.username,
+          timestamp: Date.now()
+        })
+      });
+    } else {
+      await fetch(baseUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ip: userIp,
+          code: randomCode
+        })
+      });
     }
-
-    // إنشاء كود جديد وتخزينه إذا لم يكن هناك كود موجود
-    const randomCode = generateRandomCode(userData.username);
-
-    await fetch(baseUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ip: userIp,
-        code: randomCode,
-        user: userData.username,
-        timestamp: Date.now()
-      })
-    });
 
     return randomCode;
 
