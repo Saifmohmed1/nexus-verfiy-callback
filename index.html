@@ -44,6 +44,7 @@
     .tap-container.show {
       opacity: 1; /* Make visible */
       visibility: visible; /* Show it */
+      transform: scale(1); /* Scale up */
     }
     .avatar {
       border-radius: 50%;
@@ -398,6 +399,7 @@ document.getElementById('verifyButton').addEventListener('click', async function
     cardWrapper.classList.add('show');  // Apply the animation class
     
     cardWrapper.offsetHeight;  // Force reflow, ensure the animation starts
+    cardWrapper.style.transform = 'translate(-50%, -50%)';  // Ensure it's centered
 
   } else {
     alert('Please complete the CAPTCHA.');
