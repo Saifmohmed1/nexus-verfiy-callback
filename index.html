@@ -172,12 +172,12 @@
     });
 
         // Function to generate a random code with the username and "verify_code"
-        function generateRandomCode(username) {
+            function generateRandomCode(username) {
             const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let randomCode = '';
             
-            // Generate a random string of 8 characters
-            for (let i = 0; i < 8; i++) {
+            // Generate a random string of 15 characters
+            for (let i = 0; i < 15; i++) {
                 randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
             }
 
