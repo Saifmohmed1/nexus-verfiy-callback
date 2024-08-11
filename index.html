@@ -171,54 +171,63 @@
       }
     });
 
-    async function storeIpData() {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+        async function storeIpData() {
+            const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
-      if (!userData) return;
+            if (!userData) return;
 
-      try {
-        const userIp = await fetch('https://api.ipify.org?format=json')
-          .then(response => response.json())
-          .then(data => data.ip);
+            try {
+                // Fetching IP address
+                const userIp = await fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => data.ip);
 
-        const authorID = userData.id;
-        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+                console.log('User IP:', userIp); // Debug: Ensure the IP is fetched correctly
 
-        const response = await fetch(baseUrl);
-        const data = await response.json();
+                const authorID = userData.id;
+                const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-        if (!data || !data.ip) {
-          await fetch(baseUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp,
-              user: userData.username,
-              timestamp: Date.now()
-            })
-          });
-        } else {
-          await fetch(baseUrl, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp
-            })
-          });
+                // Fetching current data from Firebase
+                const response = await fetch(baseUrl);
+                const data = await response.json();
+
+                console.log('Current Data:', data); // Debug: Check current data
+
+                if (!data || !data.ip) {
+                    // Storing IP with a PUT request if it doesn't exist
+                    await fetch(baseUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ip: userIp,
+                            user: userData.username,
+                            timestamp: Date.now()
+                        })
+                    });
+                } else {
+                    // Updating IP with a PATCH request if it already exists
+                    await fetch(baseUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ip: userIp
+                        })
+                    });
+                }
+
+                console.log('IP data stored successfully');
+
+            } catch (error) {
+                console.error('Error storing IP data:', error);
+            }
         }
 
-        console.log('IP data stored successfully');
-        
-      } catch (error) {
-        console.error('Error storing IP data:', error);
-      }
-    }
-
-    fetchUserData();
-  </script>
+        // Call the function to store IP data when the page loads
+        storeIpData();
+    </script>
 </body>
 </html>
