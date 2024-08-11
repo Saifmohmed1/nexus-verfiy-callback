@@ -459,36 +459,33 @@ async function storeIpAndCodeData() {
     const authorID = userData.id;
     const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-    const randomCode = generateRandomCode(userData.username);
-
     const response = await fetch(baseUrl);
     const data = await response.json();
 
-    if (!data || !data.ip) {
-      await fetch(baseUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ip: userIp,
-          code: randomCode,
-          user: userData.username,
-          timestamp: Date.now()
-        })
-      });
+    let randomCode;
+
+    // تحقق مما إذا كان الرمز موجودًا بالفعل
+    if (!data || !data.code) {
+      // إذا لم يكن هناك رمز، قم بإنشائه
+      randomCode = generateRandomCode(userData.username);
     } else {
-      await fetch(baseUrl, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ip: userIp,
-          code: randomCode
-        })
-      });
+      // إذا كان هناك رمز، استخدمه
+      randomCode = data.code;
     }
+
+    // تحديث أو إضافة بيانات المستخدم مع الرمز
+    await fetch(baseUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ip: userIp,
+        code: randomCode,
+        user: userData.username,
+        timestamp: Date.now()
+      })
+    });
 
     console.log('IP and code data stored successfully');
 
