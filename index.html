@@ -72,7 +72,6 @@
     .button:active {
       transform: translateY(2px);
     }
-    /* Additional styles */
     .background {
       position: fixed;
       top: 0;
@@ -236,253 +235,77 @@
   <script src="https://hcaptcha.com/1/api.js?hl=ar" async defer></script>
 </head>
 <body>
+  <!-- Original Verification Page -->
   <div class="tap-container">
     <img id="userAvatar" class="avatar" src="" alt="User Avatar">
     <div id="username" class="username"></div>
     <div class="h-captcha" data-sitekey="02ea8e6c-2bda-4fba-b7c6-489418d82d72" data-callback="onCaptchaSuccess" data-error-callback="onCaptchaError"></div>
     <button type="button" id="verifyButton" class="button" disabled>
-      <img src="https://i.ibb.co/0YyDgJS/verified-icon-256x244-b1itz0t5.png" alt="Verified Icon">
-      قم بتفعيلي
+      <img src="https://i.ibb.co/0YyDYPD/verify-icon.png" alt="Verify Icon">
+      Verify
     </button>
   </div>
 
-  <!-- Notification popup -->
-  <div class="background"></div>
-  <div class="card-wrapper">
-      <div class="card">
-          <div class="header">
-              <img src="https://i.ibb.co/QCKrfYj/Screenshot-2024-08-11-04-17-13-045-com-discord-edit.jpg" alt="Discord Screenshot" class="header-image">
-          </div>
-          <div class="info">
-              <p class="title">كود التحقق</p>
-              <p class="description">تم التحقق منك بنجاح، يمكنك الآن العودة إلى الدسكورد واستخدام هذا الكود لتفعيل وتطبيق الكود على حسابك، هذا الكود ساري على حسابك فقط.</p>
-              <p class="verification-code" id="verificationCode">...</p>
-          </div>
-          <div class="footer">
-              <button type="button" class="action">نسخ</button>
-          </div>
-      </div>
-  </div>
   <div id="notification" class="fade-in-out">
-      <div class="succsess-alert">
-          <div class="icon">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"></path>
-              </svg>
-          </div>
-          <div class="message">
-              <p>تم نسخ الكود إلى الحافظة</p>
-          </div>
+    <div class="succsess-alert">
+      <div class="icon">
+        <!-- SVG Icon for success -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4" />
+        </svg>
       </div>
+      <div class="message">Verification code copied to clipboard!</div>
+    </div>
   </div>
 
   <script>
-    async function fetchUserData() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+    const userData = {
+      avatar: 'https://example.com/user-avatar.jpg', // Replace with your avatar URL
+      username: 'JohnDoe' // Replace with dynamic username if needed
+    };
 
-      if (!code) {
-        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
-        return;
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update user avatar and username
+      document.getElementById('userAvatar').src = userData.avatar;
+      document.getElementById('username').textContent = userData.username;
 
-      const storedUserData = localStorage.getItem('discord_user_data');
-      if (storedUserData) {
-        const userData = JSON.parse(storedUserData);
-        displayUserData(userData);
-        return;
-      }
+      // Enable verify button when hCaptcha is solved
+      window.onCaptchaSuccess = () => {
+        document.getElementById('verifyButton').disabled = false;
+        document.getElementById('verifyButton').classList.remove('disabled');
+      };
 
-      try {
-        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: '1220328191470735441',
-            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
-            scope: 'identify'
-          })
-        });
+      window.onCaptchaError = () => {
+        document.getElementById('verifyButton').disabled = true;
+      };
 
-        const tokenData = await tokenResponse.json();
-        const accessToken = tokenData.access_token;
-
-        if (!accessToken) {
-          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-          return;
+      // Fetch stored verification code
+      async function fetchUserData() {
+        try {
+          const response = await fetch('https://your-api-endpoint.com/user-data'); // Replace with your API endpoint
+          const data = await response.json();
+          document.getElementById('verificationCode').textContent = data.code;
+        } catch (error) {
+          console.error('Error fetching verification code:', error);
         }
-
-        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
-
-        const userData = await userResponse.json();
-        displayUserData(userData);
-        localStorage.setItem('discord_user_data', JSON.stringify(userData));
-
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
       }
-    }
 
-    function displayUserData(userData) {
-      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
-    }
-
-    function onCaptchaSuccess() {
-      document.getElementById('verifyButton').disabled = false;
-      document.getElementById('verifyButton').style.cursor = 'pointer';
-      document.getElementById('verifyButton').style.opacity = '1';
-      document.getElementById('verifyButton').style.pointerEvents = 'auto';
-    }
-
-    function onCaptchaError() {
-      document.getElementById('verifyButton').disabled = true;
-      document.getElementById('verifyButton').style.cursor = 'not-allowed';
-      document.getElementById('verifyButton').style.opacity = '0.6';
-      document.getElementById('verifyButton').style.pointerEvents = 'none';
-    }
-
-    document.getElementById('verifyButton').addEventListener('click', async function() {
-      const responseToken = hcaptcha.getResponse();
-
-      if (responseToken) {
-        await storeIpAndCodeData();
-
-        // Show the code popup
-        const code = await fetchStoredCode();  // Fetching the stored code
-        document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
-
-        const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.style.display = 'block';  // Display the popup
-
-      } else {
-        alert('Please complete the CAPTCHA.');
-      }
+      fetchUserData();
     });
 
-    async function fetchStoredCode() {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-
-      if (!userData) return '';
-
-      try {
-        const authorID = userData.id;
-        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
-
-        const response = await fetch(baseUrl);
-        const data = await response.json();
-
-        if (data && data.code) {
-          return data.code;
-        } else {
-          throw new Error('No code found.');
-        }
-      } catch (error) {
-        console.error('Error fetching stored code:', error);
-        return '';
+    document.getElementById('verifyButton').addEventListener('click', () => {
+      const verificationCode = document.getElementById('verificationCode').textContent;
+      if (verificationCode) {
+        navigator.clipboard.writeText(verificationCode).then(() => {
+          document.getElementById('notification').style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('notification').style.display = 'none';
+          }, 3000);
+        }).catch(err => {
+          console.error('Failed to copy code: ', err);
+        });
       }
-    }
-
-    function generateRandomCode(username) {
-      const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let randomCode = '';
-      
-      for (let i = 0; i < 50; i++) {
-        randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
-      }
-
-      const middleIndex = Math.floor(randomCode.length / 2);
-      randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
-
-      const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
-      randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
-
-      return randomCode;
-    }
-
-    async function storeIpAndCodeData() {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
-
-      if (!userData) return;
-
-      try {
-        const userIp = await fetch('https://api.ipify.org?format=json')
-          .then(response => response.json())
-          .then(data => data.ip);
-
-        const authorID = userData.id;
-        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
-
-        const randomCode = generateRandomCode(userData.username);
-
-        const response = await fetch(baseUrl);
-        const data = await response.json();
-
-        if (!data || !data.ip) {
-          await fetch(baseUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp,
-              code: randomCode,
-              user: userData.username,
-              timestamp: Date.now()
-            })
-          });
-        } else {
-          await fetch(baseUrl, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp,
-              code: randomCode
-            })
-          });
-        }
-
-        console.log('IP and code data stored successfully');
-
-      } catch (error) {
-        console.error('Error storing IP and code data:', error);
-      }
-    }
-
-    document.querySelector('.action').addEventListener('click', function() {
-      const code = document.querySelector('.verification-code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        // Show notification
-        const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.style.filter = 'blur(5px)'; // Apply blur to background
-        
-        const notification = document.getElementById('notification');
-        notification.style.display = 'flex'; // Make notification visible
-        
-        // Hide notification and remove blur after a few seconds
-        setTimeout(() => {
-          notification.style.display = 'none'; // Hide the notification
-          cardWrapper.style.filter = 'none'; // Remove blur from background
-        }, 3000);
-      }).catch(err => {
-        console.error('Failed to copy code: ', err);
-      });
     });
-
-    // Call the function to fetch user data when the page loads
-    fetchUserData();
   </script>
 </body>
 </html>
