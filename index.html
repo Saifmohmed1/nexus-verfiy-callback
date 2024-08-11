@@ -20,15 +20,24 @@
       overflow: hidden;
     }
     .tap-container {
-      background: #1f1f1f;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      width: 300px;
-      z-index: 3; /* Ensure it is above the hidden tap */
-      position: relative; /* Add relative positioning */
-    }
+  background: #1f1f1f;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  width: 300px;
+  z-index: 3; /* Ensure it is above other content */
+  position: relative; /* Add relative positioning */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Animation */
+  opacity: 1; /* Default opacity */
+  transform: scale(1); /* Default scale */
+}
+
+.tap-container.hidden {
+  opacity: 0; /* Fade out */
+  transform: scale(0.95); /* Scale down */
+  pointer-events: none; /* Disable pointer events when hidden */
+}
     tap-container.show {
       z-index: 1;
       filter: blur(5px);
@@ -97,14 +106,22 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 4; /* Higher than .tap-container */
-  transition: filter 0.3s ease;
   display: none; /* Hidden until triggered */
+  pointer-events: none; /* Disable pointer events when hidden */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Animation */
 }
 
 .card-wrapper.show {
   display: block;
-  z-index: 5; /* Ensure it is above everything when shown */
   pointer-events: auto; /* Enable pointer events when visible */
+  opacity: 1; /* Fade in */
+  transform: scale(1); /* Scale up */
+}
+
+.card-wrapper.hidden {
+  opacity: 0; /* Fade out */
+  transform: scale(0.95); /* Scale down */
+  pointer-events: none; /* Disable pointer events when hidden */
 }
     .card {
       display: flex;
@@ -291,211 +308,211 @@
 
   <script>
     async function fetchUserData() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
 
-      if (!code) {
-        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
-        return;
-      }
+  if (!code) {
+    window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
+    return;
+  }
 
-      const storedUserData = localStorage.getItem('discord_user_data');
-      if (storedUserData) {
-        const userData = JSON.parse(storedUserData);
-        displayUserData(userData);
-        return;
-      }
+  const storedUserData = localStorage.getItem('discord_user_data');
+  if (storedUserData) {
+    const userData = JSON.parse(storedUserData);
+    displayUserData(userData);
+    return;
+  }
 
-      try {
-        const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: '1220328191470735441',
-            client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
-            scope: 'identify'
-          })
-        });
+  try {
+    const tokenResponse = await fetch('https://discord.com/api/v10/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: '1220328191470735441',
+        client_secret: 'dopfhqfhD8QQNnD6EXIdJWGBe30xZ_nN',
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: 'https://saifmohmed1.github.io/nexus-verfiy-callback',
+        scope: 'identify'
+      })
+    });
 
-        const tokenData = await tokenResponse.json();
-        const accessToken = tokenData.access_token;
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
 
-        if (!accessToken) {
-          window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-          return;
-        }
-
-        const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
-
-        const userData = await userResponse.json();
-        displayUserData(userData);
-        localStorage.setItem('discord_user_data', JSON.stringify(userData));
-
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
-      }
+    if (!accessToken) {
+      window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+      return;
     }
 
-    function displayUserData(userData) {
-      document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-      document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
-    }
-
-    function onCaptchaSuccess() {
-      document.getElementById('verifyButton').disabled = false;
-      document.getElementById('verifyButton').style.cursor = 'pointer';
-      document.getElementById('verifyButton').style.opacity = '1';
-      document.getElementById('verifyButton').style.pointerEvents = 'auto';
-    }
-
-    function onCaptchaError() {
-      document.getElementById('verifyButton').disabled = true;
-      document.getElementById('verifyButton').style.cursor = 'not-allowed';
-      document.getElementById('verifyButton').style.opacity = '0.6';
-      document.getElementById('verifyButton').style.pointerEvents = 'none';
-    }
-
-    document.getElementById('verifyButton').addEventListener('click', async function() {
-      const responseToken = hcaptcha.getResponse();
-
-      if (responseToken) {
-        await storeIpAndCodeData();
-
-        // Show the code popup
-        const code = await fetchStoredCode();  // Fetching the stored code
-        document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
-
-        const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.style.display = 'block';  // Display the popup
-
-      } else {
-        alert('Please complete the CAPTCHA.');
+    const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
       }
     });
 
-    async function fetchStoredCode() {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+    const userData = await userResponse.json();
+    displayUserData(userData);
+    localStorage.setItem('discord_user_data', JSON.stringify(userData));
 
-      if (!userData) return '';
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    window.location.href = 'https://saifmohmed1.github.io/nexus-verfiy.github.io/';
+  }
+}
 
-      try {
-        const authorID = userData.id;
-        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+function displayUserData(userData) {
+  document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
+  document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+}
 
-        const response = await fetch(baseUrl);
-        const data = await response.json();
+function onCaptchaSuccess() {
+  document.getElementById('verifyButton').disabled = false;
+  document.getElementById('verifyButton').style.cursor = 'pointer';
+  document.getElementById('verifyButton').style.opacity = '1';
+  document.getElementById('verifyButton').style.pointerEvents = 'auto';
+}
 
-        if (data && data.code) {
-          return data.code;
-        } else {
-          throw new Error('No code found.');
-        }
-      } catch (error) {
-        console.error('Error fetching stored code:', error);
-        return '';
-      }
+function onCaptchaError() {
+  document.getElementById('verifyButton').disabled = true;
+  document.getElementById('verifyButton').style.cursor = 'not-allowed';
+  document.getElementById('verifyButton').style.opacity = '0.6';
+  document.getElementById('verifyButton').style.pointerEvents = 'none';
+}
+
+document.getElementById('verifyButton').addEventListener('click', async function() {
+  const responseToken = hcaptcha.getResponse();
+
+  if (responseToken) {
+    await storeIpAndCodeData();
+
+    // Show the code popup with animation
+    const code = await fetchStoredCode();  // Fetching the stored code
+    document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
+
+    const cardWrapper = document.querySelector('.card-wrapper');
+    cardWrapper.classList.add('show');  // Apply the animation class
+
+  } else {
+    alert('Please complete the CAPTCHA.');
+  }
+});
+
+async function fetchStoredCode() {
+  const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+
+  if (!userData) return '';
+
+  try {
+    const authorID = userData.id;
+    const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+
+    const response = await fetch(baseUrl);
+    const data = await response.json();
+
+    if (data && data.code) {
+      return data.code;
+    } else {
+      throw new Error('No code found.');
     }
+  } catch (error) {
+    console.error('Error fetching stored code:', error);
+    return '';
+  }
+}
 
-    function generateRandomCode(username) {
-      const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let randomCode = '';
-      
-      for (let i = 0; i < 50; i++) {
-        randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
-      }
+function generateRandomCode(username) {
+  const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomCode = '';
+  
+  for (let i = 0; i < 50; i++) {
+    randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+  }
 
-      const middleIndex = Math.floor(randomCode.length / 2);
-      randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
+  const middleIndex = Math.floor(randomCode.length / 2);
+  randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
 
-      const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
-      randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
+  const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
+  randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
 
-      return randomCode;
-    }
+  return randomCode;
+}
 
-    async function storeIpAndCodeData() {
-      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+async function storeIpAndCodeData() {
+  const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
-      if (!userData) return;
+  if (!userData) return;
 
-      try {
-        const userIp = await fetch('https://api.ipify.org?format=json')
-          .then(response => response.json())
-          .then(data => data.ip);
+  try {
+    const userIp = await fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => data.ip);
 
-        const authorID = userData.id;
-        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+    const authorID = userData.id;
+    const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-        const randomCode = generateRandomCode(userData.username);
+    const randomCode = generateRandomCode(userData.username);
 
-        const response = await fetch(baseUrl);
-        const data = await response.json();
+    const response = await fetch(baseUrl);
+    const data = await response.json();
 
-        if (!data || !data.ip) {
-          await fetch(baseUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp,
-              code: randomCode,
-              user: userData.username,
-              timestamp: Date.now()
-            })
-          });
-        } else {
-          await fetch(baseUrl, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ip: userIp,
-              code: randomCode
-            })
-          });
-        }
-
-        console.log('IP and code data stored successfully');
-
-      } catch (error) {
-        console.error('Error storing IP and code data:', error);
-      }
-    }
-
-    document.querySelector('.action').addEventListener('click', function() {
-      const code = document.querySelector('.verification-code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        // Show notification
-        const cardWrapper = document.querySelector('.card-wrapper');
-        cardWrapper.style.filter = 'blur(5px)'; // Apply blur to background
-        
-        const notification = document.getElementById('notification');
-        notification.style.display = 'flex'; // Make notification visible
-        
-        // Hide notification and remove blur after a few seconds
-        setTimeout(() => {
-          notification.style.display = 'none'; // Hide the notification
-          cardWrapper.style.filter = 'none'; // Remove blur from background
-        }, 3000);
-      }).catch(err => {
-        console.error('Failed to copy code: ', err);
+    if (!data || !data.ip) {
+      await fetch(baseUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ip: userIp,
+          code: randomCode,
+          user: userData.username,
+          timestamp: Date.now()
+        })
       });
-    });
+    } else {
+      await fetch(baseUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ip: userIp,
+          code: randomCode
+        })
+      });
+    }
 
-    // Call the function to fetch user data when the page loads
-    fetchUserData();
+    console.log('IP and code data stored successfully');
+
+  } catch (error) {
+    console.error('Error storing IP and code data:', error);
+  }
+}
+
+document.querySelector('.action').addEventListener('click', function() {
+  const code = document.querySelector('.verification-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    // Show notification
+    const cardWrapper = document.querySelector('.card-wrapper');
+    cardWrapper.classList.add('hidden'); // Hide the card with animation
+    
+    const notification = document.getElementById('notification');
+    notification.style.display = 'flex'; // Make notification visible
+    
+    // Hide notification and remove blur after a few seconds
+    setTimeout(() => {
+      notification.style.display = 'none'; // Hide the notification
+      cardWrapper.classList.remove('hidden'); // Show the card again
+    }, 3000);
+  }).catch(err => {
+    console.error('Failed to copy code: ', err);
+  });
+});
+
+// Call the function to fetch user data when the page loads
+fetchUserData();
   </script>
 </body>
 </html>
