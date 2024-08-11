@@ -29,6 +29,11 @@
       z-index: 3; /* Ensure it is above the hidden tap */
       position: relative; /* Add relative positioning */
     }
+    tap-container.show {
+      z-index: 1;
+      filter: blur(5px);
+      pointer-events: none; /* Disable pointer events for the background */
+    }
     .avatar {
       border-radius: 50%;
       width: 80px;
@@ -86,7 +91,7 @@
       background-position: center;
       z-index: 0;
     }
-    .card-wrapper {
+.card-wrapper {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -94,13 +99,12 @@
   z-index: 4; /* Higher than .tap-container */
   transition: filter 0.3s ease;
   display: none; /* Hidden until triggered */
-  pointer-events: none; /* Disable pointer events when hidden */
 }
 
 .card-wrapper.show {
   display: block;
-  pointer-events: auto; /* Enable pointer events when visible */
   z-index: 5; /* Ensure it is above everything when shown */
+  pointer-events: auto; /* Enable pointer events when visible */
 }
     .card {
       display: flex;
