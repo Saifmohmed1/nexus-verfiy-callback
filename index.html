@@ -88,6 +88,12 @@
     async function fetchUserData() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
+
+      // Redirect to Discord OAuth2 authorization page if code is missing
+      if (!code) {
+        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1220328191470735441&redirect_uri=https%3A%2F%2Fsaifmohmed1.github.io%2Fnexus-verfiy-callback&response_type=code&scope=identify';
+        return;
+      }
       
       const storedUserData = localStorage.getItem('discord_user_data');
       if (storedUserData) {
@@ -95,10 +101,6 @@
         const userData = JSON.parse(storedUserData);
         displayUserData(userData);
         return;
-      }
-
-      if (!code) {
-        return; // No code, don't proceed further
       }
 
       try {
@@ -165,59 +167,59 @@
       const responseToken = hcaptcha.getResponse();
 
       if (responseToken) {
-        await storeIpData();
+        await storeIpAndCodeData();
       } else {
         alert('Please complete the CAPTCHA.');
       }
     });
 
-        // Function to generate a random code with the username and "verify_code"
-            function generateRandomCode(username) {
-            const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let randomCode = '';
-            
-            // Generate a random string of 15 characters
-            for (let i = 0; i < 50; i++) {
-                randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
-            }
+    // Function to generate a random code with the username and "verify_code"
+    function generateRandomCode(username) {
+      const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let randomCode = '';
+      
+      // Generate a random string of 50 characters
+      for (let i = 0; i < 50; i++) {
+        randomCode += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+      }
 
-            // Insert the username in the middle of the code
-            const middleIndex = Math.floor(randomCode.length / 2);
-            randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
+      // Insert the username in the middle of the code
+      const middleIndex = Math.floor(randomCode.length / 2);
+      randomCode = randomCode.slice(0, middleIndex) + username + randomCode.slice(middleIndex);
 
-            // Insert "verify_code" at a random position in the code
-            const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
-            randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
+      // Insert "verify_code" at a random position in the code
+      const randomIndex = Math.floor(Math.random() * (randomCode.length + 1));
+      randomCode = randomCode.slice(0, randomIndex) + 'verify_code' + randomCode.slice(randomIndex);
 
-            return randomCode;
-        }
+      return randomCode;
+    }
 
-        // Function to store IP and code data in Firebase
-        async function storeIpAndCodeData() {
-            const userData = JSON.parse(localStorage.getItem('discord_user_data'));
+    // Function to store IP and code data in Firebase
+    async function storeIpAndCodeData() {
+      const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
-            if (!userData) return;
+      if (!userData) return;
 
-            try {
-                // Fetching IP address
-                const userIp = await fetch('https://api.ipify.org?format=json')
-                    .then(response => response.json())
-                    .then(data => data.ip);
+      try {
+        // Fetching IP address
+        const userIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip);
 
-                console.log('User IP:', userIp); // Debug: Ensure the IP is fetched correctly
+        console.log('User IP:', userIp); // Debug: Ensure the IP is fetched correctly
 
-                const authorID = userData.id;
-                const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
+        const authorID = userData.id;
+        const baseUrl = `https://hello-a92eb-default-rtdb.firebaseio.com/variables/${authorID}.json`;
 
-                // Generate the random code
-                const randomCode = generateRandomCode(userData.username);
-                console.log('Generated Code:', randomCode); // Debug: Check the generated code
+        // Generate the random code
+        const randomCode = generateRandomCode(userData.username);
+        console.log('Generated Code:', randomCode); // Debug: Check the generated code
 
-                // Fetching current data from Firebase
-                const response = await fetch(baseUrl);
-                const data = await response.json();
+        // Fetching current data from Firebase
+        const response = await fetch(baseUrl);
+        const data = await response.json();
 
-                console.log('Current Data:', data); // Debug: Check current data
+        console.log('Current Data:', data); // Debug:
 
                 if (!data || !data.ip) {
                     // Storing IP and code with a PUT request if it doesn't exist
