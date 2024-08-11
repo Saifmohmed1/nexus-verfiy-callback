@@ -91,16 +91,17 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2; /* Keep this lower than .tap-container */
+  z-index: 4; /* Higher than .tap-container */
   transition: filter 0.3s ease;
   display: none; /* Hidden until triggered */
   pointer-events: none; /* Disable pointer events when hidden */
-     }
+}
 
-    .card-wrapper.show {
-    display: block;
-    pointer-events: auto; /* Enable pointer events when visible */
-    }
+.card-wrapper.show {
+  display: block;
+  pointer-events: auto; /* Enable pointer events when visible */
+  z-index: 5; /* Ensure it is above everything when shown */
+}
     .card {
       display: flex;
       flex-direction: column;
