@@ -85,13 +85,19 @@
       z-index: 0;
     }
     .card-wrapper {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-      transition: filter 0.3s ease;
-      display: none; /* Hidden until triggered */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    transition: filter 0.3s ease;
+    display: none; /* Hidden until triggered */
+    pointer-events: none; /* Disable pointer events when hidden */
+    }
+
+    .card-wrapper.show {
+    display: block;
+    pointer-events: auto; /* Enable pointer events when visible */
     }
     .card {
       display: flex;
