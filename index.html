@@ -19,29 +19,32 @@
       height: 100vh;
       overflow: hidden;
     }
+    /* Base styles for the tap container */
     .tap-container {
-  background: #1f1f1f;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  width: 300px;
-  z-index: 3; /* Ensure it is above other content */
-  position: relative; /* Add relative positioning */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Animation */
-  opacity: 1; /* Default opacity */
-  transform: scale(1); /* Default scale */
-}
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      width: 300px;
+      position: absolute; /* Change from relative to absolute */
+      top: 50%; /* Center vertically */
+      left: 50%; /* Center horizontally */
+      transform: translate(-50%, -50%); /* Adjust for exact centering */
+      z-index: 3; /* Ensure it is above the blurred background */
+      opacity: 0; /* Start hidden */
+      visibility: hidden; /* Hide initially */
+      transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+    }
 
-.tap-container.hidden {
-  opacity: 0; /* Fade out */
-  transform: scale(0.95); /* Scale down */
-  pointer-events: none; /* Disable pointer events when hidden */
-}
-    tap-container.show {
-      z-index: 1;
-      filter: blur(5px);
-      pointer-events: none; /* Disable pointer events for the background */
+    .tap-container.hidden {
+      opacity: 0; /* Fade out */
+      transform: scale(0.95); /* Scale down */
+      pointer-events: none; /* Disable pointer events when hidden */
+    }
+    .tap-container.show {
+      opacity: 1; /* Make visible */
+      visibility: visible; /* Show it */
     }
     .avatar {
       border-radius: 50%;
@@ -100,24 +103,38 @@
       background-position: center;
       z-index: 0;
     }
+
 .card-wrapper {
-  position: fixed;
+  position: relative; /* Ensure it's positioned relative */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 4; /* Higher than .tap-container */
+  z-index: 1; /* Behind the tap container */
   display: none; /* Hidden until triggered */
   pointer-events: none; /* Disable pointer events when hidden */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Animation */
+  transition: filter 0.3s ease; /* Smooth transition for blur */
 }
 
+/* Class to apply the blur effect */
+.card-wrapper.blurred {
+  filter: blur(5px); /* Apply blur to background */
+}
 .card-wrapper.show {
   display: block;
   pointer-events: auto; /* Enable pointer events when visible */
   opacity: 1; /* Fade in */
   transform: scale(1); /* Scale up */
 }
-
+.overlay {
+  position: fixed; /* Fixed position to cover the whole viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 2; /* Behind the tap container but above the background */
+  display: none; /* Hide initially */
+}
 .card-wrapper.hidden {
   opacity: 0; /* Fade out */
   transform: scale(0.95); /* Scale down */
@@ -392,8 +409,13 @@ document.getElementById('verifyButton').addEventListener('click', async function
     const code = await fetchStoredCode();  // Fetching the stored code
     document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
 
+    const overlay = document.querySelector('.overlay');
+    const tapContainer = document.querySelector('.tap-container');
     const cardWrapper = document.querySelector('.card-wrapper');
-    cardWrapper.classList.add('show');  // Apply the animation class
+
+    overlay.classList.add('show'); // Show the overlay
+    cardWrapper.classList.add('blurred'); // Apply blur to background
+    tapContainer.classList.add('show'); // Show the tap container
 
   } else {
     alert('Please complete the CAPTCHA.');
@@ -495,16 +517,20 @@ document.querySelector('.action').addEventListener('click', function() {
   const code = document.querySelector('.verification-code').textContent;
   navigator.clipboard.writeText(code).then(() => {
     // Show notification
+    const overlay = document.querySelector('.overlay');
     const cardWrapper = document.querySelector('.card-wrapper');
-    cardWrapper.classList.add('hidden'); // Hide the card with animation
+    const tapContainer = document.querySelector('.tap-container');
+
+    overlay.classList.remove('show'); // Hide the overlay
+    cardWrapper.classList.remove('blurred'); // Remove blur from background
+    tapContainer.classList.remove('show'); // Hide the tap container
     
     const notification = document.getElementById('notification');
     notification.style.display = 'flex'; // Make notification visible
     
-    // Hide notification and remove blur after a few seconds
+    // Hide notification after a few seconds
     setTimeout(() => {
       notification.style.display = 'none'; // Hide the notification
-      cardWrapper.classList.remove('hidden'); // Show the card again
     }, 3000);
   }).catch(err => {
     console.error('Failed to copy code: ', err);
