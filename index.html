@@ -86,10 +86,20 @@
     }
 
     .card-wrapper {
-      position: relative;
-      z-index: 1;
-      transition: filter 0.3s ease;
-    }
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    transition: filter 0.3s ease;
+    display: none; /* Hidden until triggered */
+    pointer-events: none; /* Disable pointer events when hidden */
+}
+
+.card-wrapper.show {
+    display: block;
+    pointer-events: auto; /* Enable pointer events when visible */
+}
 
     .card {
       display: flex;
@@ -340,6 +350,43 @@
         notification.style.display = 'none';
       }, 3000); // Hide after 3 seconds
     }
+document.getElementById('verifyButton').addEventListener('click', async function() {
+    const responseToken = hcaptcha.getResponse();
+
+    if (responseToken) {
+        await storeIpAndCodeData();
+
+        const code = await fetchStoredCode();  // Fetching the stored code
+        document.getElementById('verificationCode').textContent = code;  // Set the code in the popup
+
+        const cardWrapper = document.querySelector('.card-wrapper');
+        cardWrapper.classList.add('show');  // Show the popup
+
+    } else {
+        alert('Please complete the CAPTCHA.');
+    }
+});
+
+document.querySelector('.action').addEventListener('click', function() {
+    const code = document.querySelector('.verification-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        // Show notification
+        const cardWrapper = document.querySelector('.card-wrapper');
+        cardWrapper.style.filter = 'blur(5px)'; // Apply blur to background
+
+        const notification = document.getElementById('notification');
+        notification.style.display = 'flex'; // Make notification visible
+
+        // Hide notification and remove blur after a few seconds
+        setTimeout(() => {
+            notification.style.display = 'none'; // Hide the notification
+            cardWrapper.style.filter = 'none'; // Remove blur from background
+            cardWrapper.classList.remove('show');  // Hide the popup and re-enable pointer-events on the main page
+        }, 3000);
+    }).catch(err => {
+        console.error('Failed to copy code: ', err);
+    });
+});
   </script>
 </body>
 </html>
