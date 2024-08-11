@@ -310,7 +310,7 @@
   </div>
 
   <script>
-    async function fetchUserData() {
+async function fetchUserData() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
 
@@ -446,7 +446,6 @@ function generateRandomCode(username) {
   return randomCode;
 }
 
-
 async function storeIpAndCodeData() {
   const userData = JSON.parse(localStorage.getItem('discord_user_data'));
 
@@ -490,13 +489,6 @@ async function storeIpAndCodeData() {
         })
       });
     }
-
-    return randomCode;
-
-  } catch (error) {
-    console.error('Error storing data:', error);
-  }
-}
 
     console.log('IP and code data stored successfully');
 
