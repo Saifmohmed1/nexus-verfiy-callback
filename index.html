@@ -367,8 +367,12 @@ async function fetchUserData() {
 }
 
 function displayUserData(userData) {
+  const avatarUrl = userData.avatar 
+    ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` 
+    : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+
+  document.getElementById('userAvatar').src = avatarUrl;
   document.getElementById('username').textContent = `اهلا بك ${userData.username}!`;
-  document.getElementById('userAvatar').src = userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
 }
 
 function onCaptchaSuccess() {
