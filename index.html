@@ -464,16 +464,14 @@ async function storeIpAndCodeData() {
 
     let randomCode;
 
-    // تحقق مما إذا كان الرمز موجودًا بالفعل
+    // Generate a new code if it doesn't already exist
     if (!data || !data.code) {
-      // إذا لم يكن هناك رمز، قم بإنشائه
       randomCode = generateRandomCode(userData.username);
     } else {
-      // إذا كان هناك رمز، استخدمه
       randomCode = data.code;
     }
 
-    // تحديث أو إضافة بيانات المستخدم مع الرمز
+    // Store or update the code for this user
     await fetch(baseUrl, {
       method: 'PUT',
       headers: {
